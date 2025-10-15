@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getSegmentationInsights, type SegmentationState } from '@/lib/actions';
 import { Loader2, Wand2, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSegmentation } from '@/context/segmentation-context';
 
 export default function SegmentationPage() {
-    const [state, setState] = useState<SegmentationState>({});
+    const { analysis, setAnalysis } = useSegmentation();
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const [csvData, setCsvData] = useState<string | null>(null);
@@ -48,14 +49,16 @@ export default function SegmentationPage() {
 
         startTransition(async () => {
             const result = await getSegmentationInsights(csvData);
-            if(result.message !== 'success') {
+            if(result.message === 'success' && result.analysis) {
+                setAnalysis(result.analysis);
+            } else {
                 toast({
                     variant: 'destructive',
                     title: 'Falha na análise',
                     description: result.message,
                 });
+                setAnalysis(null);
             }
-            setState(result);
         });
     };
 
@@ -121,7 +124,7 @@ export default function SegmentationPage() {
                 </Card>
             )}
 
-            {state.insights && !isPending && (
+            {analysis?.textualInsights && !isPending && (
                  <Card className="max-w-4xl">
                     <CardHeader>
                         <CardTitle className="font-headline">Insights de Segmentação</CardTitle>
@@ -129,7 +132,7 @@ export default function SegmentationPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap font-sans p-4 bg-muted/50 rounded-lg">
-                            {state.insights}
+                            {analysis.textualInsights}
                         </div>
                     </CardContent>
                 </Card>

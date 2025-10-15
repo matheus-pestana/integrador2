@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { marketSegmentationInsights, type MarketSegmentationInsightsInput } from '@/ai/flows/market-segmentation-insights';
+import { marketSegmentationInsights, type MarketSegmentationInsightsInput, type MarketSegmentationInsightsOutput } from '@/ai/flows/market-segmentation-insights';
 import { generateMarketingStrategies, type MarketingStrategiesInput } from '@/ai/flows/personalized-marketing-strategy-generation';
 
 const strategiesSchema = z.object({
@@ -43,21 +43,21 @@ export async function getMarketingStrategies(prevState: StrategiesState, formDat
 
 
 export type SegmentationState = {
-    message?: string;
-    insights?: string;
+    message: 'success' | 'error';
+    analysis?: MarketSegmentationInsightsOutput;
 }
 
 export async function getSegmentationInsights(clusterData: string): Promise<SegmentationState> {
     if (!clusterData) {
-        return { message: 'Cluster data is required.' };
+        return { message: 'error' };
     }
 
     try {
         const input: MarketSegmentationInsightsInput = { clusterData };
         const result = await marketSegmentationInsights(input);
-        return { message: 'success', insights: result.segmentInsights };
+        return { message: 'success', analysis: result };
     } catch (error) {
         console.error(error);
-        return { message: 'An error occurred while generating insights.' };
+        return { message: 'error' };
     }
 }

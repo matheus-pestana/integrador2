@@ -1,8 +1,28 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Target, Activity, DollarSign } from "lucide-react";
 import DashboardCharts from "@/components/dashboard-charts";
+import { useSegmentation } from "@/context/segmentation-context";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
+  const { analysis } = useSegmentation();
+  const [totalCustomers, setTotalCustomers] = useState(8231);
+  const [avgPurchaseValue, setAvgPurchaseValue] = useState(98.65);
+
+  useEffect(() => {
+    if (analysis?.segments) {
+      const newTotalCustomers = analysis.segments.reduce((acc, segment) => acc + segment.size, 0);
+      setTotalCustomers(newTotalCustomers);
+
+      const totalValue = analysis.segments.reduce((acc, s) => acc + (s.avg_purchase_value * s.size), 0);
+      const newAvgPurchaseValue = newTotalCustomers > 0 ? totalValue / newTotalCustomers : 0;
+      setAvgPurchaseValue(newAvgPurchaseValue);
+    }
+  }, [analysis]);
+
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -19,9 +39,9 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8,231</div>
+            <div className="text-2xl font-bold">{totalCustomers.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +5.1% from last month
+              {analysis ? "From latest analysis" : "+5.1% from last month"}
             </p>
           </CardContent>
         </Card>
@@ -33,7 +53,7 @@ export default function DashboardPage() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">{analysis?.segments?.length ?? 4}</div>
             <p className="text-xs text-muted-foreground">
               Based on latest analysis
             </p>
@@ -45,9 +65,9 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$98.65</div>
+            <div className="text-2xl font-bold">${avgPurchaseValue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
-              -1.2% from last month
+              {analysis ? "From latest analysis" : "-1.2% from last month"}
             </p>
           </CardContent>
         </Card>

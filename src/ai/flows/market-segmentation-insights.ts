@@ -20,12 +20,21 @@ const MarketSegmentationInsightsInputSchema = z.object({
 });
 export type MarketSegmentationInsightsInput = z.infer<typeof MarketSegmentationInsightsInputSchema>;
 
+const SegmentSchema = z.object({
+  name: z.string().describe('A descriptive name for the customer segment (e.g., "High-Value Frequent Buyers").'),
+  size: z.number().describe('The number of customers in this segment.'),
+  avg_purchase_value: z.number().describe('The average purchase value for this segment.'),
+  purchase_frequency: z.number().describe('The average purchase frequency for this segment (e.g., purchases per month/year).'),
+  description: z.string().describe('A brief, human-readable summary of the key attributes and needs of this segment.'),
+});
+
 const MarketSegmentationInsightsOutputSchema = z.object({
-  segmentInsights: z
+  textualInsights: z
     .string()
     .describe(
-      'Insights about each market segment, including key attributes and needs of different customer groups, in a human-readable format.'
+      'A human-readable summary of the key attributes and needs of the different customer groups found in the data.'
     ),
+  segments: z.array(SegmentSchema).describe('An array of identified market segments with their structured data.'),
 });
 export type MarketSegmentationInsightsOutput = z.infer<typeof MarketSegmentationInsightsOutputSchema>;
 
@@ -41,7 +50,18 @@ const prompt = ai.definePrompt({
   output: {schema: MarketSegmentationInsightsOutputSchema},
   prompt: `You are an expert marketing analyst.
 
-  Analyze the characteristics of the customer data sample provided. Based on this sample data, identify potential market segments. For each segment, suggest key attributes and needs. Structure the response in a human-readable format. The output should be well-formatted and easy to understand.
+  Analyze the characteristics of the customer data sample provided. Based on this sample data, identify between 3 and 5 potential market segments.
+
+  For each segment, you must:
+  1.  Provide a descriptive name (e.g., "High-Value Frequent Buyers", "New Shoppers", "Budget Spenders").
+  2.  Estimate the segment size (number of customers).
+  3.  Estimate the average purchase value.
+  4.  Estimate the purchase frequency.
+  5.  Write a brief summary of the segment's key attributes and needs.
+
+  Finally, provide a single, combined textual summary of all the segments.
+
+  The estimates should be derived logically from the sample data provided. Ensure the output is structured as valid JSON according to the provided schema.
 
   Customer Data Sample (CSV format):
   {{clusterData}}`,
