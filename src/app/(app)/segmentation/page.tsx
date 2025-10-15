@@ -1,12 +1,14 @@
+
 "use client";
 
 import { useState, useTransition, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getSegmentationInsights, type SegmentationState } from '@/lib/actions';
+import { getSegmentationInsights } from '@/lib/actions';
 import { Loader2, Wand2, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSegmentation } from '@/context/segmentation-context';
+import DashboardCharts from '@/components/dashboard-charts';
 
 export default function SegmentationPage() {
     const { analysis, setAnalysis } = useSegmentation();
@@ -136,6 +138,12 @@ export default function SegmentationPage() {
                         </div>
                     </CardContent>
                 </Card>
+            )}
+            
+            {analysis && !isPending && (
+                <div className="max-w-4xl">
+                    <DashboardCharts />
+                </div>
             )}
         </div>
     );
