@@ -21,7 +21,11 @@ export default function SegmentationPage() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const text = e.target?.result as string;
-                setCsvData(text);
+                // Limit the amount of data we process
+                const lines = text.split('\n');
+                const header = lines[0];
+                const sample = lines.slice(1, 11).join('\n'); // Header + 10 rows
+                setCsvData(`${header}\n${sample}`);
                 setFileName(file.name);
             };
             reader.readAsText(file);

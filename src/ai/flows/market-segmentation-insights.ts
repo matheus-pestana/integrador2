@@ -15,7 +15,7 @@ const MarketSegmentationInsightsInputSchema = z.object({
   clusterData: z
     .string()
     .describe(
-      'The data of customer clusters, as a JSON string.  Each cluster should include data elements associated with the identified market segment, such as average purchase value, frequency of purchases, demographics, etc.'
+      'A sample of customer data from a CSV file. It includes the header row and a few sample rows to show the data structure.'
     ),
 });
 export type MarketSegmentationInsightsInput = z.infer<typeof MarketSegmentationInsightsInputSchema>;
@@ -41,9 +41,9 @@ const prompt = ai.definePrompt({
   output: {schema: MarketSegmentationInsightsOutputSchema},
   prompt: `You are an expert marketing analyst.
 
-  Analyze the characteristics of each customer cluster provided in the cluster data. Based on the data, suggest insights about each market segment, so the user can quickly understand the key attributes and needs of different customer groups.  Structure the response in a human-readable format. The output should be well-formatted and easy to understand.
+  Analyze the characteristics of the customer data sample provided. Based on this sample data, identify potential market segments. For each segment, suggest key attributes and needs. Structure the response in a human-readable format. The output should be well-formatted and easy to understand.
 
-  Cluster Data:
+  Customer Data Sample (CSV format):
   {{clusterData}}`,
 });
 
