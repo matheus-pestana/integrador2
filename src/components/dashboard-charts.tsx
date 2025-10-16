@@ -56,35 +56,38 @@ export default function DashboardCharts() {
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
-    for(let i=0; i<analysis.segments.length; i++) {
-        const segment = analysis.segments[i];
-        const chartColorKey = `chart-${(i % 5) + 1}` as '1' | '2' | '3' | '4' | '5';
+    analysis.segments.forEach((segment, i) => {
+      const chartColorKey = `chart-${(i % 5) + 1}` as '1' | '2' | '3' | '4' | '5';
+      const color = `hsl(var(--${chartColorKey}))`;
 
-        newChartConfig[segment.name] = {
-            label: segment.name,
-            color: `hsl(var(--${chartColorKey}))`,
-        };
-        newBarChartData.push({
-            name: segment.name,
-            size: segment.size,
-            fill: `var(--color-${chartColorKey})`,
-        });
+      newChartConfig[segment.name] = {
+        label: segment.name,
+        color: color,
+      };
 
-        // For scatter, generate some random data around the segment's average
-        for (let j = 0; j < segment.size; j++) {
-            const freq = segment.purchase_frequency + (Math.random() - 0.5) * (segment.purchase_frequency * 0.8);
-            const val = segment.avg_purchase_value + (Math.random() - 0.5) * (segment.avg_purchase_value * 0.8);
-            minX = Math.min(minX, freq);
-            maxX = Math.max(maxX, freq);
-            minY = Math.min(minY, val);
-            maxY = Math.max(maxY, val);
-            newScatterChartData.push({
-                purchase_frequency: freq,
-                avg_purchase_value: val,
-                cluster: segment.name
-            });
-        }
-    }
+      newBarChartData.push({
+        name: segment.name,
+        size: segment.size,
+        fill: `var(--color-${segment.name})`,
+      });
+      
+      // For scatter, generate some random data around the segment's average
+      for (let j = 0; j < segment.size; j++) {
+          const freq = segment.purchase_frequency + (Math.random() - 0.5) * (segment.purchase_frequency * 0.8);
+          const val = segment.avg_purchase_value + (Math.random() - 0.5) * (segment.avg_purchase_value * 0.8);
+          minX = Math.min(minX, freq);
+          maxX = Math.max(maxX, freq);
+          minY = Math.min(minY, val);
+          maxY = Math.max(maxY, val);
+          newScatterChartData.push({
+              purchase_frequency: freq,
+              avg_purchase_value: val,
+              cluster: segment.name,
+              fill: color
+          });
+      }
+    });
+
     const xPadding = (maxX - minX) * 0.1;
     const yPadding = (maxY - minY) * 0.1;
 
@@ -138,13 +141,12 @@ export default function DashboardCharts() {
                             <ZAxis type="category" dataKey="cluster" name="Segment" />
                             <ChartTooltip cursor={{ strokeDasharray: '3 3' }} content={<ChartTooltipContent />} />
                             <Legend />
-                            {Object.keys(chartConfig).filter(key => key !== 'size').map((segmentName) => (
+                             {Object.keys(chartConfig).filter(key => key !== 'size').map((segmentName) => (
                                 <Scatter 
                                     key={segmentName}
                                     name={segmentName} 
                                     data={scatterChartData.filter(d => d.cluster === segmentName)} 
-                                    fill={`var(--color-${segmentName.replace(/\s/g, '-')})`}
-                                    style={{'--color-chart-1': chartConfig[segmentName]?.color}}
+                                    fill={chartConfig[segmentName]?.color}
                                 />
                             ))}
                         </ScatterChart>
