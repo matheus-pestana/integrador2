@@ -21,6 +21,7 @@ export default function SegmentationPage() {
     const [csvData, setCsvData] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const numClustersRef = useRef<HTMLInputElement>(null);
 
     const [dataTreatment, setDataTreatment] = useState({
         normalize: true,
@@ -59,8 +60,10 @@ export default function SegmentationPage() {
             return;
         }
 
+        const numberOfClusters = numClustersRef.current ? parseInt(numClustersRef.current.value, 10) : 3;
+
         startTransition(async () => {
-            const result = await getSegmentationInsights(csvData, dataTreatment);
+            const result = await getSegmentationInsights(csvData, dataTreatment, numberOfClusters);
             if(result.message === 'success' && result.analysis) {
                 setAnalysis(result.analysis);
             } else {
@@ -129,7 +132,7 @@ export default function SegmentationPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="num-clusters">Number of Clusters</Label>
-                                <Input id="num-clusters" type="number" defaultValue="3" min="1" />
+                                <Input ref={numClustersRef} id="num-clusters" type="number" defaultValue="3" min="1" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="distance-metric">Distance Metric</Label>

@@ -22,6 +22,7 @@ const MarketSegmentationInsightsInputSchema = z.object({
     excludeNulls: z.boolean(),
     groupCategories: z.boolean(),
   }).describe('Data treatment options.'),
+  numberOfClusters: z.number().describe('The desired number of market segments to identify.'),
 });
 export type MarketSegmentationInsightsInput = z.infer<typeof MarketSegmentationInsightsInputSchema>;
 
@@ -55,7 +56,7 @@ const prompt = ai.definePrompt({
   output: {schema: MarketSegmentationInsightsOutputSchema},
   prompt: `You are an expert marketing analyst.
 
-  Analyze the characteristics of the customer data sample provided. Based on this sample data, identify between 3 and 5 potential market segments.
+  Analyze the characteristics of the customer data sample provided. Based on this sample data, identify exactly {{{numberOfClusters}}} potential market segments.
 
   Apply the following data treatments before analysis:
   - Normalize Data: {{{dataTreatment.normalize}}}
