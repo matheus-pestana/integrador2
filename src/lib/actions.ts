@@ -47,13 +47,13 @@ export type SegmentationState = {
     analysis?: MarketSegmentationInsightsOutput;
 }
 
-export async function getSegmentationInsights(clusterData: string): Promise<SegmentationState> {
+export async function getSegmentationInsights(clusterData: string, dataTreatment: MarketSegmentationInsightsInput['dataTreatment']): Promise<SegmentationState> {
     if (!clusterData) {
         return { message: 'error' };
     }
 
     try {
-        const input: MarketSegmentationInsightsInput = { clusterData };
+        const input: MarketSegmentationInsightsInput = { clusterData, dataTreatment };
         const result = await marketSegmentationInsights(input);
         return { message: 'success', analysis: result };
     } catch (error) {

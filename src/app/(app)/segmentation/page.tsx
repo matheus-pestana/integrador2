@@ -12,6 +12,7 @@ import DashboardCharts from '@/components/dashboard-charts';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function SegmentationPage() {
     const { analysis, setAnalysis } = useSegmentation();
@@ -20,6 +21,12 @@ export default function SegmentationPage() {
     const [csvData, setCsvData] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [dataTreatment, setDataTreatment] = useState({
+        normalize: true,
+        excludeNulls: true,
+        groupCategories: false,
+    });
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -53,7 +60,7 @@ export default function SegmentationPage() {
         }
 
         startTransition(async () => {
-            const result = await getSegmentationInsights(csvData);
+            const result = await getSegmentationInsights(csvData, dataTreatment);
             if(result.message === 'success' && result.analysis) {
                 setAnalysis(result.analysis);
             } else {
@@ -78,44 +85,70 @@ export default function SegmentationPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <Card className="lg:col-span-1">
-                    <CardHeader>
-                        <CardTitle>Clustering</CardTitle>
-                        <CardDescription>Configure the clustering algorithm.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="clustering-settings">Settings</Label>
-                            <Select defaultValue="kmeans">
-                                <SelectTrigger id="clustering-settings">
-                                    <SelectValue placeholder="Select method" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="kmeans">K-Means</SelectItem>
-                                    <SelectItem value="dbscan">DBSCAN</SelectItem>
-                                    <SelectItem value="hierarchical">Hierarchical</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="num-clusters">Number of Clusters</Label>
-                            <Input id="num-clusters" type="number" defaultValue="3" min="1" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="distance-metric">Distance Metric</Label>
-                            <Select defaultValue="euclidean">
-                                <SelectTrigger id="distance-metric">
-                                    <SelectValue placeholder="Select metric" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="euclidean">Euclidean</SelectItem>
-                                    <SelectItem value="manhattan">Manhattan</SelectItem>
-                                    <SelectItem value="cosine">Cosine</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </CardContent>
-                </Card>
+                <div className="lg:col-span-1 space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Data Treatment</CardTitle>
+                            <CardDescription>Configure data pre-processing.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="normalize" checked={dataTreatment.normalize} onCheckedChange={(checked) => setDataTreatment(prev => ({...prev, normalize: !!checked}))} />
+                                <Label htmlFor="normalize">Normalize Data</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="exclude-nulls" checked={dataTreatment.excludeNulls} onCheckedChange={(checked) => setDataTreatment(prev => ({...prev, excludeNulls: !!checked}))} />
+                                <Label htmlFor="exclude-nulls">Exclude Nulls</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="group-categories" checked={dataTreatment.groupCategories} onCheckedChange={(checked) => setDataTreatment(prev => ({...prev, groupCategories: !!checked}))} />
+                                <Label htmlFor="group-categories">Group Categories</Label>
+                            </div>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Clustering</CardTitle>
+                            <CardDescription>Configure the clustering algorithm.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="clustering-settings">Settings</Label>
+                                <Select defaultValue="kmeans">
+                                    <SelectTrigger id="clustering-settings">
+                                        <SelectValue placeholder="Select method" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="kmeans">K-Means</SelectItem>
+                                        <SelectItem value="dbscan">DBSCAN</SelectItem>
+                                        <SelectItem value="hierarchical">Hierarchical</SelectItem>
+                                        <SelectItem value="gmm">Gaussian Mixture</SelectItem>
+                                        <SelectItem value="som">Self-Organizing Maps</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="num-clusters">Number of Clusters</Label>
+                                <Input id="num-clusters" type="number" defaultValue="3" min="1" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="distance-metric">Distance Metric</Label>
+                                <Select defaultValue="euclidean">
+                                    <SelectTrigger id="distance-metric">
+                                        <SelectValue placeholder="Select metric" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="euclidean">Euclidean</SelectItem>
+                                        <SelectItem value="manhattan">Manhattan</SelectItem>
+                                        <SelectItem value="cosine">Cosine</SelectItem>
+                                        <SelectItem value="minkowski">Minkowski</SelectItem>
+                                        <SelectItem value="chebyshev">Chebyshev</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 <Card className="lg:col-span-2">
                     <CardHeader>

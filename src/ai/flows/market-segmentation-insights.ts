@@ -17,6 +17,11 @@ const MarketSegmentationInsightsInputSchema = z.object({
     .describe(
       'A sample of customer data from a CSV file. It includes the header row and a few sample rows to show the data structure.'
     ),
+  dataTreatment: z.object({
+    normalize: z.boolean(),
+    excludeNulls: z.boolean(),
+    groupCategories: z.boolean(),
+  }).describe('Data treatment options.'),
 });
 export type MarketSegmentationInsightsInput = z.infer<typeof MarketSegmentationInsightsInputSchema>;
 
@@ -51,6 +56,11 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert marketing analyst.
 
   Analyze the characteristics of the customer data sample provided. Based on this sample data, identify between 3 and 5 potential market segments.
+
+  Apply the following data treatments before analysis:
+  - Normalize Data: {{{dataTreatment.normalize}}}
+  - Exclude Nulls: {{{dataTreatment.excludeNulls}}}
+  - Group Categories: {{{dataTreatment.groupCategories}}}
 
   For each segment, you must:
   1.  Provide a descriptive name (e.g., "High-Value Frequent Buyers", "New Shoppers", "Budget Spenders").
