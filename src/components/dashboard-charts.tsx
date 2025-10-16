@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { MOCK_BAR_CHART_DATA, MOCK_SCATTER_DATA } from "@/lib/constants";
@@ -68,7 +68,7 @@ export default function DashboardCharts() {
       newBarChartData.push({
         name: segment.name,
         size: segment.size,
-        fill: `var(--color-${segment.name})`,
+        fill: color,
       });
       
       // For scatter, generate some random data around the segment's average
@@ -120,7 +120,11 @@ export default function DashboardCharts() {
                             <YAxis />
                             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                             <Legend />
-                            <Bar dataKey="size" radius={4} />
+                            <Bar dataKey="size" radius={4}>
+                                {barChartData.map((entry) => (
+                                    <Cell key={entry.name} fill={entry.fill} />
+                                ))}
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartContainer>
