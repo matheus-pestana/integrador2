@@ -92,12 +92,14 @@ export default function SegmentationPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="kmeans">K-Means</SelectItem>
+                                    <SelectItem value="dbscan">DBSCAN</SelectItem>
+                                    <SelectItem value="hierarchical">Hierarchical</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="num-clusters">Number of Clusters</Label>
-                            <Input id="num-clusters" type="number" defaultValue="3" />
+                            <Input id="num-clusters" type="number" defaultValue="3" min="1" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="distance-metric">Distance Metric</Label>
@@ -107,6 +109,8 @@ export default function SegmentationPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="euclidean">Euclidean</SelectItem>
+                                    <SelectItem value="manhattan">Manhattan</SelectItem>
+                                    <SelectItem value="cosine">Cosine</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
