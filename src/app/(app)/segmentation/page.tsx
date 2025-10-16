@@ -9,6 +9,9 @@ import { Loader2, Wand2, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSegmentation } from '@/context/segmentation-context';
 import DashboardCharts from '@/components/dashboard-charts';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 export default function SegmentationPage() {
     const { analysis, setAnalysis } = useSegmentation();
@@ -74,42 +77,79 @@ export default function SegmentationPage() {
                 </p>
             </div>
 
-            <Card className="max-w-4xl">
-                <CardHeader>
-                    <CardTitle>Executar Análise de Segmentação</CardTitle>
-                    <CardDescription>Use IA para descobrir os principais atributos e necessidades de diferentes grupos de clientes a partir dos seus dados.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg bg-background/50 space-y-4">
-                        <Wand2 className="h-12 w-12 text-primary" />
-                        
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept=".csv"
-                            className="hidden"
-                        />
-                        
-                        <Button onClick={handleUploadClick} variant="outline">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Carregar arquivo .csv
-                        </Button>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <Card className="lg:col-span-1">
+                    <CardHeader>
+                        <CardTitle>Clustering</CardTitle>
+                        <CardDescription>Configure the clustering algorithm.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="clustering-settings">Settings</Label>
+                            <Select defaultValue="kmeans">
+                                <SelectTrigger id="clustering-settings">
+                                    <SelectValue placeholder="Select method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="kmeans">K-Means</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="num-clusters">Number of Clusters</Label>
+                            <Input id="num-clusters" type="number" defaultValue="3" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="distance-metric">Distance Metric</Label>
+                            <Select defaultValue="euclidean">
+                                <SelectTrigger id="distance-metric">
+                                    <SelectValue placeholder="Select metric" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="euclidean">Euclidean</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                        {fileName && (
-                            <div className="flex items-center text-sm text-muted-foreground">
-                                <FileText className="mr-2 h-4 w-4" />
-                                <span>{fileName}</span>
-                            </div>
-                        )}
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Executar Análise de Segmentação</CardTitle>
+                        <CardDescription>Use IA para descobrir os principais atributos e necessidades de diferentes grupos de clientes a partir dos seus dados.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg bg-background/50 space-y-4">
+                            <Wand2 className="h-12 w-12 text-primary" />
+                            
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept=".csv"
+                                className="hidden"
+                            />
+                            
+                            <Button onClick={handleUploadClick} variant="outline">
+                                <Upload className="mr-2 h-4 w-4" />
+                                Carregar arquivo .csv
+                            </Button>
 
-                        <Button onClick={handleAnalysis} disabled={isPending || !csvData}>
-                            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                            Gerar Insights
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                            {fileName && (
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    <span>{fileName}</span>
+                                </div>
+                            )}
+
+                            <Button onClick={handleAnalysis} disabled={isPending || !csvData}>
+                                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                Gerar Insights
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
             {isPending && (
                 <Card className="max-w-4xl">
