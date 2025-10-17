@@ -113,7 +113,7 @@ export default function DashboardCharts() {
 
   return (
     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card>
+        <Card className="lg:col-span-2">
             <CardHeader>
                 <CardTitle className="font-headline">Customer Segments</CardTitle>
                 <CardDescription>Size of each identified customer segment.</CardDescription>
@@ -137,7 +137,7 @@ export default function DashboardCharts() {
                 </ChartContainer>
             </CardContent>
         </Card>
-        <Card>
+        <Card className="lg:col-span-2">
             <CardHeader>
                 <CardTitle className="font-headline">Segment Distribution</CardTitle>
                 <CardDescription>Percentage distribution of customer segments.</CardDescription>

@@ -229,7 +229,7 @@ export default function SegmentationPage() {
             )}
             
             {analysis && !isPending && (
-                <div className="mt-8">
+                <div className="mt-8 grid gap-6">
                     <DashboardCharts />
                 </div>
             )}
