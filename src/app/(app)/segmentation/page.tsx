@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useTransition } from 'react';
@@ -13,10 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { ChartConfig } from '@/components/ui/chart';
-import { DashboardCharts } from '@/components/dashboard-charts';
+import DashboardCharts from '@/components/dashboard-charts';
 
 
 export default function SegmentationPage() {
@@ -82,18 +83,13 @@ export default function SegmentationPage() {
         });
     };
 
-    const { chartConfig, pieChartData, totalCustomers } = useMemo(() => {
+    const { chartConfig, pieChartData } = useMemo(() => {
         if (!analysis?.segments?.length) {
-            return {
-                chartConfig: {},
-                pieChartData: [],
-                totalCustomers: 0,
-            };
+            return { chartConfig: {}, pieChartData: [] };
         }
 
         const newChartConfig: ChartConfig = {};
         const newPieChartData = [];
-        let newTotalCustomers = 0;
 
         analysis.segments.forEach((segment, i) => {
             const chartColorKey = `chart-${(i % 5) + 1}` as '1' | '2' | '3' | '4' | '5';
@@ -109,13 +105,11 @@ export default function SegmentationPage() {
                 value: segment.size,
                 fill: color,
             });
-            newTotalCustomers += segment.size;
         });
 
         return {
             chartConfig: newChartConfig,
-            pieChartData: newPieChartData,
-            totalCustomers: newTotalCustomers,
+            pieChartData: newPieChartData
         };
     }, [analysis]);
 
@@ -272,7 +266,6 @@ export default function SegmentationPage() {
                 )}
                 
                 {analysis && !isPending && (
-                    <>
                     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                         <DashboardCharts />
                         <Card>
@@ -280,8 +273,8 @@ export default function SegmentationPage() {
                                 <CardTitle className="font-headline">Segment Distribution</CardTitle>
                                 <CardDescription>Percentage distribution of customer segments.</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex flex-col items-center justify-center">
-                                <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[300px] pb-0">
+                            <CardContent className="flex items-center justify-center">
+                                <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[350px] w-full">
                                     <ResponsiveContainer>
                                         <PieChart>
                                             <ChartTooltip
@@ -292,56 +285,27 @@ export default function SegmentationPage() {
                                                 data={pieChartData}
                                                 dataKey="value"
                                                 nameKey="name"
-                                                innerRadius={60}
-                                                outerRadius={80}
+                                                innerRadius={80}
+                                                outerRadius={120}
                                                 strokeWidth={5}
-                                                labelLine={false}
-                                                label={({
-                                                    cx,
-                                                    cy,
-                                                    midAngle,
-                                                    innerRadius,
-                                                    outerRadius,
-                                                    value,
-                                                    index,
-                                                }) => {
-                                                    const RADIAN = Math.PI / 180
-                                                    // eslint-disable-next-line
-                                                    const radius = 25 + innerRadius + (outerRadius - innerRadius)
-                                                    // eslint-disable-next-line
-                                                    const x = cx + radius * Math.cos(-midAngle * RADIAN)
-                                                    // eslint-disable-next-line
-                                                    const y = cy + radius * Math.sin(-midAngle * RADIAN)
-
-                                                    return (
-                                                        <text
-                                                            x={x}
-                                                            y={y}
-                                                            className="fill-muted-foreground text-xs"
-                                                            textAnchor={x > cx ? "start" : "end"}
-                                                            dominantBaseline="central"
-                                                        >
-                                                            {pieChartData[index].name} ({value})
-                                                        </text>
-                                                    )
-                                                }}
                                             >
                                                 {pieChartData.map((entry) => (
                                                     <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                                 ))}
                                             </Pie>
-                                            <Legend />
+                                            <Legend content={<Legend align="center" layout="vertical" />} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </ChartContainer>
                             </CardContent>
                         </Card>
-                        </div>
-                    </>
+                    </div>
                 )}
             </div>
         </div>
     );
 }
+
+    
 
     
