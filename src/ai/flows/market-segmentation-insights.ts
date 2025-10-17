@@ -54,7 +54,7 @@ const prompt = ai.definePrompt({
   name: 'marketSegmentationInsightsPrompt',
   input: {schema: MarketSegmentationInsightsInputSchema},
   output: {schema: MarketSegmentationInsightsOutputSchema},
-  prompt: `You are an expert marketing analyst.
+  prompt: `You are an expert marketing analyst. Your output must be in Brazilian Portuguese.
 
   Analyze the characteristics of the customer data sample provided. Based on this sample data, identify exactly {{{numberOfClusters}}} potential market segments.
 
@@ -64,7 +64,7 @@ const prompt = ai.definePrompt({
   - Group Categories: {{{dataTreatment.groupCategories}}}
 
   For each segment, you must:
-  1.  Provide a descriptive name (e.g., "High-Value Frequent Buyers", "New Shoppers", "Budget Spenders").
+  1.  Provide a descriptive name (e.g., "Compradores Frequentes de Alto Valor", "Novos Compradores", "Gastadores Econômicos").
   2.  Estimate the segment size (number of customers).
   3.  Estimate the average purchase value.
   4.  Estimate the purchase frequency.

@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
   name: 'personalizedMarketingStrategyPrompt',
   input: {schema: MarketingStrategiesInputSchema},
   output: {schema: MarketingStrategiesOutputSchema},
-  prompt: `You are an expert marketing strategist. Based on the description of customer segments and campaign objectives, generate personalized marketing strategies. Return an array of marketing strategies.
+  prompt: `You are an expert marketing strategist. Based on the description of customer segments and campaign objectives, generate personalized marketing strategies. Return an array of marketing strategies. The output must be in Brazilian Portuguese.
 
 Customer Segment Attributes: {{{customerSegmentAttributes}}}
 Campaign Objectives: {{{campaignObjectives}}}`,
