@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useFormState, useFormStatus } from 'react-dom';
@@ -19,7 +20,7 @@ function SubmitButton() {
     return (
         <Button type="submit" className="w-full" disabled={pending}>
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4" />}
-            Generate Strategies
+            Gerar Estratégias
         </Button>
     );
 }
@@ -33,7 +34,7 @@ export default function StrategiesPage() {
         if (state.message && state.message !== 'success') {
             toast({
                 variant: 'destructive',
-                title: 'Error',
+                title: 'Erro',
                 description: state.message,
             });
         }
@@ -44,8 +45,8 @@ export default function StrategiesPage() {
             <div className="space-y-2">
                 <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Marketing Strategy Generator</h1>
                 <p className="text-muted-foreground max-w-2xl">
-                    Generate personalized marketing strategies for specific customer segments and campaign objectives. 
-                    Fill out the form below to get AI-powered recommendations.
+                    Gere estratégias de marketing personalizadas para segmentos de clientes e objetivos de campanha específicos.
+                    Preencha o formulário abaixo para obter recomendações alimentadas por IA.
                 </p>
             </div>
             
@@ -53,26 +54,26 @@ export default function StrategiesPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Create New Strategy</CardTitle>
-                        <CardDescription>Describe your segment and goals.</CardDescription>
+                        <CardDescription>Descreva seu segmento e seus objetivos.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form action={formAction} className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="customerSegmentAttributes">Customer Segment Attributes</Label>
+                                <Label htmlFor="customerSegmentAttributes">Atributos do Segmento de Clientes</Label>
                                 <Textarea
                                     id="customerSegmentAttributes"
                                     name="customerSegmentAttributes"
-                                    placeholder="e.g., High-income urban professionals, age 30-45, interested in luxury travel and technology."
+                                    placeholder="ex: Profissionais urbanos de alta renda, 30-45 anos, interessados em viagens de luxo e tecnologia."
                                     className="min-h-[120px]"
                                 />
                                 {state.errors?.customerSegmentAttributes && <p className="text-sm text-destructive">{state.errors.customerSegmentAttributes[0]}</p>}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="campaignObjectives">Campaign Objectives</Label>
+                                <Label htmlFor="campaignObjectives">Objetivos da Campanha</Label>
                                 <Textarea
                                     id="campaignObjectives"
                                     name="campaignObjectives"
-                                    placeholder="e.g., Increase brand awareness, drive sign-ups for a new premium service, boost Q3 sales by 15%."
+                                    placeholder="ex: Aumentar o reconhecimento da marca, impulsionar inscrições para um novo serviço premium, aumentar as vendas do terceiro trimestre em 15%."
                                     className="min-h-[120px]"
                                 />
                                 {state.errors?.campaignObjectives && <p className="text-sm text-destructive">{state.errors.campaignObjectives[0]}</p>}
@@ -85,14 +86,14 @@ export default function StrategiesPage() {
                 <Card className="flex flex-col min-h-[500px]">
                     <CardHeader>
                         <CardTitle>Generated Strategies</CardTitle>
-                        <CardDescription>Your AI-powered marketing ideas will appear here.</CardDescription>
+                        <CardDescription>Suas ideias de marketing geradas por IA aparecerão aqui.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-1 flex items-center justify-center p-6">
                         {state.strategies ? (
                             <Accordion type="single" collapsible className="w-full">
                                 {state.strategies.map((strategy, index) => (
                                     <AccordionItem value={`item-${index}`} key={index}>
-                                        <AccordionTrigger>Strategy {index + 1}</AccordionTrigger>
+                                        <AccordionTrigger>Estratégia {index + 1}</AccordionTrigger>
                                         <AccordionContent className="text-base">
                                             {strategy}
                                         </AccordionContent>
@@ -102,8 +103,8 @@ export default function StrategiesPage() {
                         ) : (
                             <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg w-full">
                                 <Lightbulb className="mx-auto h-12 w-12" />
-                                <p className="mt-4 font-medium">Your strategies are waiting</p>
-                                <p className="text-sm">Fill out the form to get started.</p>
+                                <p className="mt-4 font-medium">Suas estratégias estão à espera</p>
+                                <p className="text-sm">Preencha o formulário para começar.</p>
                             </div>
                         )}
                     </CardContent>

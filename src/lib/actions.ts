@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -5,8 +6,8 @@ import { marketSegmentationInsights, type MarketSegmentationInsightsInput, type 
 import { generateMarketingStrategies, type MarketingStrategiesInput } from '@/ai/flows/personalized-marketing-strategy-generation';
 
 const strategiesSchema = z.object({
-    customerSegmentAttributes: z.string().min(10, { message: 'Please provide more detail about the customer segment.' }),
-    campaignObjectives: z.string().min(10, { message: 'Please provide more detail about the campaign objectives.' }),
+    customerSegmentAttributes: z.string().min(10, { message: 'Por favor, forneça mais detalhes sobre o segmento de clientes.' }),
+    campaignObjectives: z.string().min(10, { message: 'Por favor, forneça mais detalhes sobre os objetivos da campanha.' }),
 });
 
 export type StrategiesState = {
@@ -27,7 +28,7 @@ export async function getMarketingStrategies(prevState: StrategiesState, formDat
     if (!validatedFields.success) {
         return {
             errors: validatedFields.error.flatten().fieldErrors,
-            message: 'Invalid form data.',
+            message: 'Dados do formulário inválidos.',
         };
     }
 
@@ -37,7 +38,7 @@ export async function getMarketingStrategies(prevState: StrategiesState, formDat
         return { message: 'success', strategies: result.marketingStrategies };
     } catch (error) {
         console.error(error);
-        return { message: 'An error occurred while generating strategies.' };
+        return { message: 'Ocorreu um erro ao gerar as estratégias.' };
     }
 }
 
