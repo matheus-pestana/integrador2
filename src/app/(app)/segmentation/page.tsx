@@ -13,6 +13,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ResponsiveContainer, PieChart, Pie, Cell, Label as RechartsLabel, Legend } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { useMemo } from 'react';
+import type { ChartConfig } from '@/components/ui/chart';
+
 
 export default function SegmentationPage() {
     const { analysis, setAnalysis } = useSegmentation();
@@ -76,6 +81,43 @@ export default function SegmentationPage() {
             }
         });
     };
+
+    const { chartConfig, pieChartData, totalCustomers } = useMemo(() => {
+        if (!analysis?.segments?.length) {
+            return {
+                chartConfig: {},
+                pieChartData: [],
+                totalCustomers: 0,
+            };
+        }
+
+        const newChartConfig: ChartConfig = {};
+        const newPieChartData = [];
+        let newTotalCustomers = 0;
+
+        analysis.segments.forEach((segment, i) => {
+            const chartColorKey = `chart-${(i % 5) + 1}` as '1' | '2' | '3' | '4' | '5';
+            const color = `hsl(var(--${chartColorKey}))`;
+
+            newChartConfig[segment.name] = {
+                label: segment.name,
+                color: color,
+            };
+
+            newPieChartData.push({
+                name: segment.name,
+                value: segment.size,
+                fill: color,
+            });
+            newTotalCustomers += segment.size;
+        });
+
+        return {
+            chartConfig,
+            pieChartData: newPieChartData,
+            totalCustomers: newTotalCustomers,
+        };
+    }, [analysis]);
 
     return (
         <div className="space-y-8">
@@ -213,26 +255,91 @@ export default function SegmentationPage() {
                     </Card>
                 </div>
             )}
-
-            {analysis?.textualInsights && !isPending && (
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Insights de Segmentação</CardTitle>
-                        <CardDescription>Análise gerada por IA de seus segmentos de clientes.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap font-sans p-4 bg-muted/50 rounded-lg">
-                            {analysis.textualInsights}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
             
-            {analysis && !isPending && (
-                <div className="mt-8 grid gap-6">
-                    <DashboardCharts />
-                </div>
-            )}
+            <div className="grid gap-6 mt-8">
+                {analysis?.textualInsights && !isPending && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline">Insights de Segmentação</CardTitle>
+                            <CardDescription>Análise gerada por IA de seus segmentos de clientes.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap font-sans p-4 bg-muted/50 rounded-lg">
+                                {analysis.textualInsights}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+                
+                {analysis && !isPending && (
+                    <>
+                        <DashboardCharts />
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline">Segment Distribution</CardTitle>
+                                <CardDescription>Percentage distribution of customer segments.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-col items-center justify-center">
+                                <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[300px] pb-0">
+                                    <ResponsiveContainer>
+                                    <PieChart>
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={<ChartTooltipContent hideLabel />}
+                                        />
+                                        <Pie
+                                            data={pieChartData}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            strokeWidth={5}
+                                        >
+                                            <RechartsLabel
+                                                content={({ viewBox }) => {
+                                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                                    return (
+                                                        <text
+                                                        x={viewBox.cx}
+                                                        y={viewBox.cy}
+                                                        textAnchor="middle"
+                                                        dominantBaseline="middle"
+                                                        >
+                                                        <tspan
+                                                            x={viewBox.cx}
+                                                            y={viewBox.cy}
+                                                            className="text-3xl font-bold"
+                                                        >
+                                                            {totalCustomers.toLocaleString()}
+                                                        </tspan>
+                                                        <tspan
+                                                            x={viewBox.cx}
+                                                            y={(viewBox.cy || 0) + 24}
+                                                            className="text-muted-foreground"
+                                                        >
+                                                            Customers
+                                                        </tspan>
+                                                        </text>
+                                                    )
+                                                    }
+                                                }}
+                                            />
+                                            {pieChartData.map((entry) => (
+                                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                                            ))}
+                                        </Pie>
+                                        <ChartLegend
+                                            content={<ChartLegendContent nameKey="name" className="flex-wrap" />}
+                                            className="-mt-4"
+                                        />
+                                    </PieChart>
+                                    </ResponsiveContainer>
+                                </ChartContainer>
+                            </CardContent>
+                        </Card>
+                    </>
+                )}
+            </div>
         </div>
     );
 }
