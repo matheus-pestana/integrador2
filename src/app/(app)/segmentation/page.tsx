@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useTransition } from 'react';
@@ -13,12 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { useMemo } from 'react';
-import type { ChartConfig } from '@/components/ui/chart';
 import DashboardCharts from '@/components/dashboard-charts';
-
 
 export default function SegmentationPage() {
     const { analysis, setAnalysis } = useSegmentation();
@@ -82,36 +76,6 @@ export default function SegmentationPage() {
             }
         });
     };
-
-    const { chartConfig, pieChartData } = useMemo(() => {
-        if (!analysis?.segments?.length) {
-            return { chartConfig: {}, pieChartData: [] };
-        }
-
-        const newChartConfig: ChartConfig = {};
-        const newPieChartData = [];
-
-        analysis.segments.forEach((segment, i) => {
-            const chartColorKey = `chart-${(i % 5) + 1}` as '1' | '2' | '3' | '4' | '5';
-            const color = `hsl(var(--${chartColorKey}))`;
-
-            newChartConfig[segment.name] = {
-                label: segment.name,
-                color: color,
-            };
-
-            newPieChartData.push({
-                name: segment.name,
-                value: segment.size,
-                fill: color,
-            });
-        });
-
-        return {
-            chartConfig: newChartConfig,
-            pieChartData: newPieChartData
-        };
-    }, [analysis]);
 
     return (
         <div className="space-y-8">
@@ -268,44 +232,9 @@ export default function SegmentationPage() {
                 {analysis && !isPending && (
                     <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                         <DashboardCharts />
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="font-headline">Segment Distribution</CardTitle>
-                                <CardDescription>Percentage distribution of customer segments.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex items-center justify-center">
-                                <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[350px] w-full">
-                                    <ResponsiveContainer>
-                                        <PieChart>
-                                            <ChartTooltip
-                                                cursor={false}
-                                                content={<ChartTooltipContent hideLabel />}
-                                            />
-                                            <Pie
-                                                data={pieChartData}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                innerRadius={80}
-                                                outerRadius={120}
-                                                strokeWidth={5}
-                                            >
-                                                {pieChartData.map((entry) => (
-                                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                                                ))}
-                                            </Pie>
-                                            <Legend content={<Legend align="center" layout="vertical" />} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </ChartContainer>
-                            </CardContent>
-                        </Card>
                     </div>
                 )}
             </div>
         </div>
     );
 }
-
-    
-
-    

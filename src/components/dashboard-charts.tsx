@@ -3,7 +3,7 @@
 
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, PieChart, Pie, Label as RechartsLabel } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { MOCK_BAR_CHART_DATA, MOCK_SCATTER_DATA } from "@/lib/constants";
 import { useSegmentation } from "@/context/segmentation-context";
 import { useMemo } from "react";
