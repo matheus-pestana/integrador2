@@ -1,11 +1,12 @@
+
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, PieChart, Pie, Sector, Label } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, PieChart, Pie, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { MOCK_BAR_CHART_DATA, MOCK_SCATTER_DATA } from "@/lib/constants";
 import { useSegmentation } from "@/context/segmentation-context";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 const chartConfigBase: ChartConfig = {
   size: {
@@ -141,8 +142,8 @@ export default function DashboardCharts() {
                 <CardTitle className="font-headline">Segment Distribution</CardTitle>
                 <CardDescription>Percentage distribution of customer segments.</CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 pb-0">
-                 <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[300px]">
+            <CardContent className="flex flex-col items-center justify-center">
+                 <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[300px] pb-0">
                     <ResponsiveContainer>
                        <PieChart>
                           <ChartTooltip
@@ -153,8 +154,8 @@ export default function DashboardCharts() {
                             data={barChartData}
                             dataKey="size"
                             nameKey="name"
-                            innerRadius={50}
-                            outerRadius={90}
+                            innerRadius={60}
+                            outerRadius={80}
                             strokeWidth={5}
                           >
                              <Label
@@ -191,10 +192,8 @@ export default function DashboardCharts() {
                             ))}
                           </Pie>
                           <ChartLegend
-                            content={<ChartLegendContent nameKey="name" />}
-                            verticalAlign="middle"
-                            align="right"
-                            className="flex-col gap-2"
+                            content={<ChartLegendContent nameKey="name" className="flex-wrap" />}
+                            className="-mt-4"
                           />
                        </PieChart>
                     </ResponsiveContainer>
@@ -232,3 +231,5 @@ export default function DashboardCharts() {
     </div>
   );
 }
+
+    
