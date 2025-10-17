@@ -1,8 +1,8 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, PieChart, Pie, Sector } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, PieChart, Pie, Sector, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { MOCK_BAR_CHART_DATA, MOCK_SCATTER_DATA } from "@/lib/constants";
 import { useSegmentation } from "@/context/segmentation-context";
 import { useMemo, useState } from "react";
@@ -34,67 +34,17 @@ const chartConfigBase: ChartConfig = {
 };
 
 
-const renderActiveShape = (props: any) => {
-  const RADIAN = Math.PI / 180;
-  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
-  const sin = Math.sin(-RADIAN * midAngle);
-  const cos = Math.cos(-RADIAN * midAngle);
-  const sx = cx + (outerRadius + 10) * cos;
-  const sy = cy + (outerRadius + 10) * sin;
-  const mx = cx + (outerRadius + 30) * cos;
-  const my = cy + (outerRadius + 30) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-  const ey = my;
-  const textAnchor = cos >= 0 ? 'start' : 'end';
-
-  return (
-    <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
-        {payload.name}
-      </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 6}
-        outerRadius={outerRadius + 10}
-        fill={fill}
-      />
-      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))">{`Size ${value}`}</text>
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))">
-        {`(Rate ${(percent * 100).toFixed(2)}%)`}
-      </text>
-    </g>
-  );
-};
-
-
 export default function DashboardCharts() {
   const { analysis } = useSegmentation();
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const onPieEnter = (_: any, index: number) => {
-    setActiveIndex(index);
-  };
-
-  const { chartConfig, barChartData, scatterChartData, scatterDomains } = useMemo(() => {
+  
+  const { chartConfig, barChartData, scatterChartData, scatterDomains, totalCustomers } = useMemo(() => {
     if (!analysis?.segments?.length) {
+      const mockTotal = MOCK_BAR_CHART_DATA.reduce((acc, curr) => acc + curr.size, 0);
       return { 
         chartConfig: chartConfigBase, 
         barChartData: MOCK_BAR_CHART_DATA, 
         scatterChartData: MOCK_SCATTER_DATA,
+        totalCustomers: mockTotal,
         scatterDomains: {
           x: [0, 'dataMax'],
           y: ['dataMin - 10', 'dataMax + 10']
@@ -105,6 +55,7 @@ export default function DashboardCharts() {
     const newChartConfig: ChartConfig = { size: { label: "Size" } };
     const newBarChartData = [];
     const newScatterChartData = [];
+    let newTotalCustomers = 0;
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
@@ -122,6 +73,8 @@ export default function DashboardCharts() {
         size: segment.size,
         fill: color,
       });
+
+      newTotalCustomers += segment.size;
       
       // For scatter, generate some random data around the segment's average
       for (let j = 0; j < segment.size; j++) {
@@ -147,6 +100,7 @@ export default function DashboardCharts() {
       chartConfig: newChartConfig,
       barChartData: newBarChartData,
       scatterChartData: newScatterChartData,
+      totalCustomers: newTotalCustomers,
       scatterDomains: {
         x: [Math.max(0, minX - xPadding), maxX + xPadding],
         y: [Math.max(0, minY - yPadding), maxY + yPadding],
@@ -187,26 +141,61 @@ export default function DashboardCharts() {
                 <CardTitle className="font-headline">Segment Distribution</CardTitle>
                 <CardDescription>Percentage distribution of customer segments.</CardDescription>
             </CardHeader>
-            <CardContent>
-                 <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <CardContent className="flex-1 pb-0">
+                 <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[300px]">
                     <ResponsiveContainer>
                        <PieChart>
+                          <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent hideLabel />}
+                          />
                           <Pie
-                            activeIndex={activeIndex}
-                            activeShape={renderActiveShape}
                             data={barChartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            fill="hsl(var(--chart-1))"
                             dataKey="size"
-                            onMouseEnter={onPieEnter}
+                            nameKey="name"
+                            innerRadius={50}
+                            outerRadius={90}
+                            strokeWidth={5}
                           >
+                             <Label
+                              content={({ viewBox }) => {
+                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                  return (
+                                    <text
+                                      x={viewBox.cx}
+                                      y={viewBox.cy}
+                                      textAnchor="middle"
+                                      dominantBaseline="middle"
+                                    >
+                                      <tspan
+                                        x={viewBox.cx}
+                                        y={viewBox.cy}
+                                        className="text-3xl font-bold"
+                                      >
+                                        {totalCustomers.toLocaleString()}
+                                      </tspan>
+                                      <tspan
+                                        x={viewBox.cx}
+                                        y={(viewBox.cy || 0) + 24}
+                                        className="text-muted-foreground"
+                                      >
+                                        Customers
+                                      </tspan>
+                                    </text>
+                                  )
+                                }
+                              }}
+                            />
                             {barChartData.map((entry) => (
                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                             ))}
                           </Pie>
+                          <ChartLegend
+                            content={<ChartLegendContent nameKey="name" />}
+                            verticalAlign="middle"
+                            align="right"
+                            className="flex-col gap-2"
+                          />
                        </PieChart>
                     </ResponsiveContainer>
                 </ChartContainer>

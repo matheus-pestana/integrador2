@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useTransition, useRef } from 'react';
+import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getSegmentationInsights } from '@/lib/actions';
@@ -20,7 +20,7 @@ export default function SegmentationPage() {
     const { toast } = useToast();
     const [csvData, setCsvData] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [fileInput, setFileInput] = useState<HTMLInputElement | null>(null);
     const [numClusters, setNumClusters] = useState(3);
 
     const [dataTreatment, setDataTreatment] = useState({
@@ -47,7 +47,7 @@ export default function SegmentationPage() {
     };
 
     const handleUploadClick = () => {
-        fileInputRef.current?.click();
+        fileInput?.click();
     };
 
     const handleAnalysis = () => {
@@ -164,7 +164,7 @@ export default function SegmentationPage() {
                             
                             <input
                                 type="file"
-                                ref={fileInputRef}
+                                ref={setFileInput}
                                 onChange={handleFileChange}
                                 accept=".csv"
                                 className="hidden"
