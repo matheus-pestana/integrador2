@@ -1,11 +1,11 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell } from "recharts";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, PieChart, Pie, Sector } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { MOCK_BAR_CHART_DATA, MOCK_SCATTER_DATA } from "@/lib/constants";
 import { useSegmentation } from "@/context/segmentation-context";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 const chartConfigBase: ChartConfig = {
   size: {
@@ -34,8 +34,60 @@ const chartConfigBase: ChartConfig = {
 };
 
 
+const renderActiveShape = (props: any) => {
+  const RADIAN = Math.PI / 180;
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
+
+  return (
+    <g>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+        {payload.name}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))">{`Size ${value}`}</text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))">
+        {`(Rate ${(percent * 100).toFixed(2)}%)`}
+      </text>
+    </g>
+  );
+};
+
+
 export default function DashboardCharts() {
   const { analysis } = useSegmentation();
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
 
   const { chartConfig, barChartData, scatterChartData, scatterDomains } = useMemo(() => {
     if (!analysis?.segments?.length) {
@@ -122,7 +174,7 @@ export default function DashboardCharts() {
                             <Legend />
                             <Bar dataKey="size" radius={4}>
                                 {barChartData.map((entry) => (
-                                    <Cell key={entry.name} fill={entry.fill} />
+                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -131,6 +183,36 @@ export default function DashboardCharts() {
             </CardContent>
         </Card>
         <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">Segment Distribution</CardTitle>
+                <CardDescription>Percentage distribution of customer segments.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <ResponsiveContainer>
+                       <PieChart>
+                          <Pie
+                            activeIndex={activeIndex}
+                            activeShape={renderActiveShape}
+                            data={barChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            fill="hsl(var(--chart-1))"
+                            dataKey="size"
+                            onMouseEnter={onPieEnter}
+                          >
+                            {barChartData.map((entry) => (
+                               <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                            ))}
+                          </Pie>
+                       </PieChart>
+                    </ResponsiveContainer>
+                </ChartContainer>
+            </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
             <CardHeader>
                 <CardTitle className="font-headline">Cluster Visualization</CardTitle>
                 <CardDescription>Purchase frequency vs. average purchase value.</CardDescription>

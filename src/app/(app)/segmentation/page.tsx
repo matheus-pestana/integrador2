@@ -192,22 +192,30 @@ export default function SegmentationPage() {
             </div>
 
             {isPending && (
-                <Card className="max-w-4xl">
-                    <CardHeader>
-                        <CardTitle>Analisando Segmentos...</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4 p-6">
-                        <div className="h-4 bg-muted rounded w-3/4 animate-pulse"></div>
-                        <div className="h-4 bg-muted rounded w-1/2 animate-pulse"></div>
-                        <div className="h-4 bg-muted rounded w-2/3 animate-pulse"></div>
-                        <div className="h-4 bg-muted rounded w-3/4 animate-pulse mt-6"></div>
-                        <div className="h-4 bg-muted rounded w-1/2 animate-pulse"></div>
-                    </CardContent>
-                </Card>
+                <div className="grid md:grid-cols-2 gap-6 mt-8 animate-pulse">
+                    <Card>
+                        <CardHeader>
+                            <div className="h-6 bg-muted rounded w-3/4"></div>
+                            <div className="h-4 bg-muted rounded w-1/2 mt-2"></div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[300px] bg-muted rounded-md"></div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <div className="h-6 bg-muted rounded w-3/4"></div>
+                            <div className="h-4 bg-muted rounded w-1/2 mt-2"></div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[300px] bg-muted rounded-md"></div>
+                        </CardContent>
+                    </Card>
+                </div>
             )}
 
             {analysis?.textualInsights && !isPending && (
-                 <Card className="max-w-4xl">
+                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">Insights de Segmentação</CardTitle>
                         <CardDescription>Análise gerada por IA de seus segmentos de clientes.</CardDescription>
@@ -221,7 +229,7 @@ export default function SegmentationPage() {
             )}
             
             {analysis && !isPending && (
-                <div className="max-w-4xl">
+                <div className="mt-8">
                     <DashboardCharts />
                 </div>
             )}
