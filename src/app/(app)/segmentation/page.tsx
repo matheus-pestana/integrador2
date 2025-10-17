@@ -8,15 +8,15 @@ import { getSegmentationInsights } from '@/lib/actions';
 import { Loader2, Wand2, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSegmentation } from '@/context/segmentation-context';
-import DashboardCharts from '@/components/dashboard-charts';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ResponsiveContainer, PieChart, Pie, Cell, Label as RechartsLabel, Legend } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { ChartConfig } from '@/components/ui/chart';
+import { DashboardCharts } from '@/components/dashboard-charts';
 
 
 export default function SegmentationPage() {
@@ -113,7 +113,7 @@ export default function SegmentationPage() {
         });
 
         return {
-            chartConfig,
+            chartConfig: newChartConfig,
             pieChartData: newPieChartData,
             totalCustomers: newTotalCustomers,
         };
@@ -273,6 +273,7 @@ export default function SegmentationPage() {
                 
                 {analysis && !isPending && (
                     <>
+                    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                         <DashboardCharts />
                         <Card>
                             <CardHeader>
@@ -282,64 +283,65 @@ export default function SegmentationPage() {
                             <CardContent className="flex flex-col items-center justify-center">
                                 <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full max-h-[300px] pb-0">
                                     <ResponsiveContainer>
-                                    <PieChart>
-                                        <ChartTooltip
-                                            cursor={false}
-                                            content={<ChartTooltipContent hideLabel />}
-                                        />
-                                        <Pie
-                                            data={pieChartData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            innerRadius={60}
-                                            outerRadius={80}
-                                            strokeWidth={5}
-                                        >
-                                            <RechartsLabel
-                                                content={({ viewBox }) => {
-                                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                        <PieChart>
+                                            <ChartTooltip
+                                                cursor={false}
+                                                content={<ChartTooltipContent hideLabel />}
+                                            />
+                                            <Pie
+                                                data={pieChartData}
+                                                dataKey="value"
+                                                nameKey="name"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                strokeWidth={5}
+                                                labelLine={false}
+                                                label={({
+                                                    cx,
+                                                    cy,
+                                                    midAngle,
+                                                    innerRadius,
+                                                    outerRadius,
+                                                    value,
+                                                    index,
+                                                }) => {
+                                                    const RADIAN = Math.PI / 180
+                                                    // eslint-disable-next-line
+                                                    const radius = 25 + innerRadius + (outerRadius - innerRadius)
+                                                    // eslint-disable-next-line
+                                                    const x = cx + radius * Math.cos(-midAngle * RADIAN)
+                                                    // eslint-disable-next-line
+                                                    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+
                                                     return (
                                                         <text
-                                                        x={viewBox.cx}
-                                                        y={viewBox.cy}
-                                                        textAnchor="middle"
-                                                        dominantBaseline="middle"
+                                                            x={x}
+                                                            y={y}
+                                                            className="fill-muted-foreground text-xs"
+                                                            textAnchor={x > cx ? "start" : "end"}
+                                                            dominantBaseline="central"
                                                         >
-                                                        <tspan
-                                                            x={viewBox.cx}
-                                                            y={viewBox.cy}
-                                                            className="text-3xl font-bold"
-                                                        >
-                                                            {totalCustomers.toLocaleString()}
-                                                        </tspan>
-                                                        <tspan
-                                                            x={viewBox.cx}
-                                                            y={(viewBox.cy || 0) + 24}
-                                                            className="text-muted-foreground"
-                                                        >
-                                                            Customers
-                                                        </tspan>
+                                                            {pieChartData[index].name} ({value})
                                                         </text>
                                                     )
-                                                    }
                                                 }}
-                                            />
-                                            {pieChartData.map((entry) => (
-                                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                                            ))}
-                                        </Pie>
-                                        <ChartLegend
-                                            content={<ChartLegendContent nameKey="name" className="flex-wrap" />}
-                                            className="-mt-4"
-                                        />
-                                    </PieChart>
+                                            >
+                                                {pieChartData.map((entry) => (
+                                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                                                ))}
+                                            </Pie>
+                                            <Legend />
+                                        </PieChart>
                                     </ResponsiveContainer>
                                 </ChartContainer>
                             </CardContent>
                         </Card>
+                        </div>
                     </>
                 )}
             </div>
         </div>
     );
 }
+
+    
