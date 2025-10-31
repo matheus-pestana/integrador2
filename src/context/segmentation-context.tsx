@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { type MarketSegmentationInsightsOutput } from '@/ai/flows/market-segmentation-insights';
+import { type MarketSegmentationInsightsOutput } from '@/types/ai-types';
 
 type SegmentationContextType = {
   analysis: MarketSegmentationInsightsOutput | null;
