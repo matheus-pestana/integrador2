@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Target, BotMessageSquare, Settings } from "lucide-react";
+import { LayoutDashboard, Target, BotMessageSquare, Settings, History } from "lucide-react";
 
 import { Logo } from "@/components/icons";
 import {
@@ -19,6 +19,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/segmentation", label: "Segmentation", icon: Target },
   { href: "/strategies", label: "Strategies", icon: BotMessageSquare },
+  { href: "/history", label: "History", icon: History },
 ];
 
 export default function AppSidebar() {
@@ -40,7 +41,7 @@ export default function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href)}
                 tooltip={{ children: item.label }}
               >
                 <Link href={item.href}>
