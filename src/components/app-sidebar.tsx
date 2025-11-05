@@ -17,9 +17,9 @@ import { Separator } from "./ui/separator";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/segmentation", label: "Segmentation", icon: Target },
-  { href: "/strategies", label: "Strategies", icon: BotMessageSquare },
-  { href: "/history", label: "History", icon: History },
+  { href: "/segmentation", label: "Segmentação", icon: Target },
+  { href: "/strategies", label: "Estratégias", icon: BotMessageSquare },
+  { href: "/history", label: "Histórico", icon: History },
 ];
 
 export default function AppSidebar() {
@@ -57,10 +57,10 @@ export default function AppSidebar() {
         <Separator className="my-1" />
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={{ children: "Settings" }}>
+            <SidebarMenuButton asChild tooltip={{ children: "Configurações" }}>
               <Link href="#">
                 <Settings />
-                <span>Settings</span>
+                <span>Configurações</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

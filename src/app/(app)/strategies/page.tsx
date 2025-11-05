@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useFormState, useFormStatus } from 'react-dom';
@@ -43,7 +42,7 @@ export default function StrategiesPage() {
     return (
         <div className="space-y-8">
             <div className="space-y-2">
-                <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Marketing Strategy Generator</h1>
+                <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Gerador de Estratégias de Marketing</h1>
                 <p className="text-muted-foreground max-w-2xl">
                     Gere estratégias de marketing personalizadas para segmentos de clientes e objetivos de campanha específicos.
                     Preencha o formulário abaixo para obter recomendações alimentadas por IA.
@@ -53,7 +52,7 @@ export default function StrategiesPage() {
             <div className="grid lg:grid-cols-2 gap-8 items-start">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Create New Strategy</CardTitle>
+                        <CardTitle>Criar Nova Estratégia</CardTitle>
                         <CardDescription>Descreva seu segmento e seus objetivos.</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -85,7 +84,7 @@ export default function StrategiesPage() {
                 
                 <Card className="flex flex-col min-h-[500px]">
                     <CardHeader>
-                        <CardTitle>Generated Strategies</CardTitle>
+                        <CardTitle>Estratégias Geradas</CardTitle>
                         <CardDescription>Suas ideias de marketing geradas por IA aparecerão aqui.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-1 flex items-center justify-center p-6">

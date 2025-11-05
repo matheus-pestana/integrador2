@@ -113,7 +113,8 @@ class GeminiMarketingService:
             raise ValueError(f"A resposta da IA não é um JSON válido: {response_text}")
         except Exception as e:
             print(f"Erro ao chamar a API Gemini ou validar a resposta: {e}", file=sys.stderr)
-            print(f"Resposta recebida da IA (se disponível): {getattr(response, 'text', 'N/A')}", file=sys.stderr)
+            # Alterado 'N/A' para 'N/D' (Não Disponível)
+            print(f"Resposta recebida da IA (se disponível): {getattr(response, 'text', 'N/D')}", file=sys.stderr)
             raise
 
     # Método para o serviço de Segmentação
