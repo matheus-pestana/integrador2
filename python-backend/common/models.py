@@ -28,4 +28,9 @@ class MarketingStrategiesInput(BaseModel):
     campaignObjectives: str = Field(description='Description of the marketing campaign objectives')
 
 class MarketingStrategiesOutput(BaseModel):
-    marketingStrategies: List[str] = Field(description='Personalized marketing strategies...')
+    marketingStrategies: List[str] = Field(description='Personalized marketing strategies...')    
+class AnalysisMetadata(BaseModel):
+    id: int
+    timestamp: str
+    number_of_clusters: int
+    original_data_snippet: str

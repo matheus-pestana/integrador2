@@ -24,3 +24,9 @@ export interface DataTreatmentInput {
     excludeNulls: boolean;
     groupCategories: boolean;
 }
+export interface AnalysisMetadata {
+  id: number;
+  timestamp: string;
+  number_of_clusters: number;
+  original_data_snippet: string;
+}

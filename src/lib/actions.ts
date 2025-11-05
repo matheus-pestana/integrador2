@@ -5,7 +5,8 @@ import { z } from 'zod';
 import type { 
     MarketSegmentationInsightsOutput, 
     MarketingStrategiesInput,
-    DataTreatmentInput 
+    DataTreatmentInput,
+    AnalysisMetadata // Importar o novo tipo
 } from '@/types/ai-types'; // Certifique-se que você criou este arquivo
 
 // URLs separados para cada microsserviço
@@ -31,6 +32,7 @@ export type SegmentationState = {
     message: 'success' | 'error' | 'loading';
     analysis?: MarketSegmentationInsightsOutput;
     errorMessage?: string;
+    analysisId?: number; // Opcional: para sabermos se é uma análise salva
 }
 
 // --- Função Atualizada para Estratégias ---
@@ -128,4 +130,72 @@ export async function getSegmentationInsights(
         const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
         return { message: 'error', errorMessage: `Falha na comunicação com a API: ${errorMessage}` };
     } // <--- CORREÇÃO: Chave } adicionada aqui
+}
+
+// --- NOVAS ACTIONS PARA HISTÓRICO ---
+
+export type HistoryListState = {
+  message: 'success' | 'error';
+  analyses?: AnalysisMetadata[];
+  errorMessage?: string;
+}
+
+/**
+ * Busca os metadados de todas as análises salvas.
+ */
+export async function getSavedAnalyses(): Promise<HistoryListState> {
+    try {
+        const response = await fetch(`${SEGMENTATION_API_URL}/segmentation-analyses`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store', // Sempre buscar dados novos do histórico
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Erro ao buscar histórico.' }));
+            return { message: 'error', errorMessage: `Erro da API: ${errorData.detail || response.statusText}` };
+        }
+
+        const analyses: AnalysisMetadata[] = await response.json();
+        return { message: 'success', analyses };
+
+    } catch (error) {
+        console.error("Erro ao chamar getSavedAnalyses:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+        return { message: 'error', errorMessage: `Falha na comunicação com a API: ${errorMessage}` };
+    }
+}
+
+/**
+ * Busca uma análise salva completa pelo seu ID.
+ */
+export async function getSavedAnalysisById(id: number): Promise<SegmentationState> {
+     if (!id) {
+        return { message: 'error', errorMessage: 'ID da análise não fornecido.' };
+    }
+    
+    try {
+        const response = await fetch(`${SEGMENTATION_API_URL}/segmentation-analyses/${id}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+        });
+
+        if (!response.ok) {
+             const errorData = await response.json().catch(() => ({ detail: 'Erro desconhecido na API.' }));
+             if (response.status === 404) {
+                 return { message: 'error', errorMessage: 'Análise não encontrada.' };
+             }
+             return { message: 'error', errorMessage: `Erro da API (${response.status}): ${errorData.detail || response.statusText}` };
+        }
+
+        const result: MarketSegmentationInsightsOutput = await response.json();
+        // Retorna o mesmo formato do SegmentationState
+        return { message: 'success', analysis: result, analysisId: id };
+
+    } catch (error) {
+        console.error("Erro ao chamar getSavedAnalysisById:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+        return { message: 'error', errorMessage: `Falha na comunicação com a API: ${errorMessage}` };
+    }
 }
