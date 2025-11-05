@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useTransition } from 'react';
@@ -35,10 +34,10 @@ export default function SegmentationPage() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const text = e.target?.result as string;
-                // Limit the amount of data we process
+                // Limita a quantidade de dados que processamos
                 const lines = text.split('\n');
                 const header = lines[0];
-                const sample = lines.slice(1, 11).join('\n'); // Header + 10 rows
+                const sample = lines.slice(1, 11).join('\n'); // Header + 10 linhas
                 setCsvData(`${header}\n${sample}`);
                 setFileName(file.name);
             };
@@ -70,7 +69,7 @@ export default function SegmentationPage() {
                 toast({
                     variant: 'destructive',
                     title: 'Falha na análise',
-                    description: result.message,
+                    description: result.errorMessage, // Corrigido de .message para .errorMessage
                 });
                 setAnalysis(null);
             }
@@ -80,7 +79,7 @@ export default function SegmentationPage() {
     return (
         <div className="space-y-8">
             <div className="space-y-2">
-                <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Market Segmentation</h1>
+                <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Segmentação de Mercado</h1>
                 <p className="text-muted-foreground max-w-2xl">
                     Analise os dados do cliente para identificar automaticamente segmentos de mercado distintos.
                     Carregue um arquivo .csv para executar uma análise e obter insights sobre sua base de clientes.
@@ -91,54 +90,54 @@ export default function SegmentationPage() {
                 <div className="lg:col-span-1 grid grid-cols-1 gap-8 items-start">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Data Treatment</CardTitle>
-                            <CardDescription>Configure data pre-processing.</CardDescription>
+                            <CardTitle>Tratamento de Dados</CardTitle>
+                            <CardDescription>Configure o pré-processamento de dados.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center space-x-2">
                                 <Checkbox id="normalize" checked={dataTreatment.normalize} onCheckedChange={(checked) => setDataTreatment(prev => ({...prev, normalize: !!checked}))} />
-                                <Label htmlFor="normalize">Normalize Data</Label>
+                                <Label htmlFor="normalize">Normalizar Dados</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <Checkbox id="exclude-nulls" checked={dataTreatment.excludeNulls} onCheckedChange={(checked) => setDataTreatment(prev => ({...prev, excludeNulls: !!checked}))} />
-                                <Label htmlFor="exclude-nulls">Exclude Nulls</Label>
+                                <Label htmlFor="exclude-nulls">Excluir Nulos</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <Checkbox id="group-categories" checked={dataTreatment.groupCategories} onCheckedChange={(checked) => setDataTreatment(prev => ({...prev, groupCategories: !!checked}))} />
-                                <Label htmlFor="group-categories">Group Categories</Label>
+                                <Label htmlFor="group-categories">Agrupar Categorias</Label>
                             </div>
                         </CardContent>
                     </Card>
                      <Card>
                         <CardHeader>
-                            <CardTitle>Clustering</CardTitle>
-                            <CardDescription>Configure the clustering algorithm.</CardDescription>
+                            <CardTitle>Clusterização</CardTitle>
+                            <CardDescription>Configure o algoritmo de clusterização.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="clustering-settings">Settings</Label>
+                                <Label htmlFor="clustering-settings">Configurações</Label>
                                 <Select defaultValue="kmeans">
                                     <SelectTrigger id="clustering-settings">
-                                        <SelectValue placeholder="Select method" />
+                                        <SelectValue placeholder="Selecione o método" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="kmeans">K-Means</SelectItem>
                                         <SelectItem value="dbscan">DBSCAN</SelectItem>
-                                        <SelectItem value="hierarchical">Hierarchical</SelectItem>
+                                        <SelectItem value="hierarchical">Hierárquico</SelectItem>
                                         <SelectItem value="gmm">Gaussian Mixture</SelectItem>
                                         <SelectItem value="som">Self-Organizing Maps</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="num-clusters">Number of Clusters</Label>
+                                <Label htmlFor="num-clusters">Número de Clusters</Label>
                                 <Input id="num-clusters" type="number" value={numClusters} onChange={(e) => setNumClusters(Math.max(1, parseInt(e.target.value, 10) || 1))} min="1" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="distance-metric">Distance Metric</Label>
+                                <Label htmlFor="distance-metric">Métrica de Distância</Label>
                                 <Select defaultValue="euclidean">
                                     <SelectTrigger id="distance-metric">
-                                        <SelectValue placeholder="Select metric" />
+                                        <SelectValue placeholder="Selecione a métrica" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="euclidean">Euclidean</SelectItem>
