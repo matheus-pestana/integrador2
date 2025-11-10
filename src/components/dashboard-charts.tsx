@@ -3,9 +3,20 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis, Cell, PieChart, Pie, Label as RechartsLabel } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { MOCK_BAR_CHART_DATA, MOCK_SCATTER_DATA } from "@/lib/constants";
-import { useSegmentation } from "@/context/segmentation-context";
+import { MOCK_BAR_CHART_DATA, MOCK_SCATTER_DATA } from "../lib/constants";
+import { useSegmentation } from "../context/segmentation-context";
 import { useMemo } from "react";
+interface BarChartData {
+  name: string;
+  size: number;
+  fill: string;
+}
+interface ScatterChartData {
+  purchase_frequency: number;
+  avg_purchase_value: number;
+  cluster: string;
+  fill: string;
+}
 
 const chartConfigBase: ChartConfig = {
   size: {
@@ -51,8 +62,9 @@ export default function DashboardCharts() {
     }
 
     const newChartConfig: ChartConfig = { size: { label: "Tamanho" } };
-    const newBarChartData = [];
-    const newScatterChartData = [];
+    // CORREÇÃO: Tipagem explícita para evitar 'any[]'
+    const newBarChartData: BarChartData[] = [];
+    const newScatterChartData: ScatterChartData[] = [];
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
@@ -119,9 +131,20 @@ export default function DashboardCharts() {
                 <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} tick={barChartData.length > 4 ? false : true} />
                 <YAxis />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <Legend />
+                
+                {/* CORREÇÃO: Adicionado payload personalizado para a legenda */}
+                <Legend 
+                  payload={barChartData.map((item) => ({
+                    id: item.name,
+                    type: "square",
+                    value: item.name,
+                    color: item.fill,
+                  }))}
+                />
+                
                 <Bar dataKey="size" radius={4}>
                   {barChartData.map((entry) => (
+                    // CORREÇÃO: Removido 'QP' 
                     <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                   ))}
                 </Bar>

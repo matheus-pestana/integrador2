@@ -1,105 +1,225 @@
-# python-backend/segmentation_service/main.py
+# python-backend/common/database.py
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import sys
+import sqlite3
 import os
-from typing import List # Importar List
+import sys
+from typing import List, Dict, Optional, Any
+from pydantic import BaseModel
+from datetime import datetime
+from fastapi import FastAPI
 
-# Adiciona a pasta 'common' ao sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from common.models import MarketSegmentationInsightsInput, MarketSegmentationInsightsOutput, AnalysisMetadata # Adicionar AnalysisMetadata
-from common.ai_service import GeminiMarketingService
-# Importar funções do banco de dados
-from common.database import init_db, save_analysis, get_all_analyses, get_analysis_by_id
-
-app = FastAPI(
-    title="MarketWise - Serviço de Segmentação",
-    description="Microsserviço que gera insights de segmentação de clientes."
+# Importa os modelos Pydantic
+from common.models import (
+    MarketSegmentationInsightsInput, MarketSegmentationInsightsOutput, Segment,
+    AnalysisMetadata, User, UserCreate, UserProfileUpdate, UserInDB
 )
+# Importar helpers de autenticação
+from common import auth
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], 
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-@app.on_event("startup")
-def on_startup():
-    """Inicializa o banco de dados quando o servidor inicia."""
-    init_db()
+# Define o caminho do banco de dados dentro da pasta 'python-backend'
+# O banco será um arquivo chamado 'analyses.db'
+DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'analyses.db'))
 
-# Instancia o serviço OOP
-try:
-    service = GeminiMarketingService()
-except Exception as e:
-    print(f"ERRO FATAL ao inicializar o GeminiMarketingService: {e}", file=sys.stderr)
-    sys.exit(1)
+app = FastAPI()
 
-@app.post("/api/segmentation-insights", response_model=MarketSegmentationInsightsOutput)
-async def get_segmentation_insights_endpoint(input_data: MarketSegmentationInsightsInput):
-    """
-    Endpoint para gerar e salvar insights de segmentação de clientes.
-    """
-    try:
-        # 1. Gera os insights
-        validated_output = await service.generate_segmentation_insights(input_data)
+
+def get_db_connection():
+# ... (código existente, sem alterações)
+    """Cria e retorna uma conexão com o banco de dados."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    """Cria as tabelas do banco de dados se elas não existirem."""
+    print(f"Inicializando banco de dados em: {DB_PATH}", file=sys.stderr)
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+
+        # --- NOVA TABELA DE USUÁRIOS ---
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            hashed_password TEXT NOT NULL,
+            name TEXT,
+            avatar_url TEXT
+        );
+        """)
         
-        # 2. Salva a análise no DB (operação síncrona, mas rápida)
-        try:
-            analysis_id = save_analysis(input_data, validated_output)
-            print(f"Análise salva com ID: {analysis_id}", file=sys.stderr)
-        except Exception as db_error:
-            # Não falha a requisição se o salvamento der erro, apenas loga
-            print(f"ERRO AO SALVAR NO DB: {db_error}", file=sys.stderr)
+        # --- TABELA DE ANÁLISES ATUALIZADA ---
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS analyses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,  -- CAMPO ADICIONADO
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            textual_insights TEXT NOT NULL,
+            original_csv_data TEXT,
+            data_treatment_normalize BOOLEAN,
+            data_treatment_exclude_nulls BOOLEAN,
+            data_treatment_group_categories BOOLEAN,
+            number_of_clusters INTEGER,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        );
+        """)
+        
+        # Tabela para armazenar os segmentos de cada análise (sem alteração)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS segments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            analysis_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            size INTEGER NOT NULL,
+            avg_purchase_value REAL NOT NULL,
+            purchase_frequency REAL NOT NULL,
+            description TEXT NOT NULL,
+            FOREIGN KEY (analysis_id) REFERENCES analyses (id) ON DELETE CASCADE
+        );
+        """)
+        conn.commit()
+    print("Banco de dados inicializado com sucesso.", file=sys.stderr)
+
+# --- NOVAS FUNÇÕES DE USUÁRIO ---
+
+def get_user_by_email(email: str) -> Optional[UserInDB]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        return UserInDB(**row) if row else None
+
+def get_user_by_id(user_id: int) -> Optional[User]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, name, avatar_url FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        return User(**row) if row else None
+
+def create_user(user_in: UserCreate) -> User:
+    hashed_password = auth.get_password_hash(user_in.password)
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO users (email, hashed_password, name) VALUES (?, ?, ?)",
+            (user_in.email, hashed_password, user_in.name or user_in.email.split('@')[0])
+        )
+        user_id = cursor.lastrowid
+        conn.commit()
+        return get_user_by_id(user_id)
+
+def update_user_profile(user_id: int, profile_data: UserProfileUpdate) -> Optional[User]:
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        if profile_data.name is not None:
+            cursor.execute("UPDATE users SET name = ? WHERE id = ?", (profile_data.name, user_id))
+        if profile_data.avatar_url is not None:
+             cursor.execute("UPDATE users SET avatar_url = ? WHERE id = ?", (profile_data.avatar_url, user_id))
+        conn.commit()
+        return get_user_by_id(user_id)
+
+# --- FUNÇÕES DE ANÁLISE ATUALIZADAS ---
+
+def save_analysis(
+    user_id: int, # NOVO PARÂMETRO
+    analysis_input: MarketSegmentationInsightsInput, 
+    analysis_output: MarketSegmentationInsightsOutput
+) -> int:
+    """Salva uma nova análise e seus segmentos no banco de dados."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+        INSERT INTO analyses (
+            user_id, textual_insights, original_csv_data, data_treatment_normalize, 
+            data_treatment_exclude_nulls, data_treatment_group_categories, number_of_clusters
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            user_id, # DADO ADICIONADO
+            analysis_output.textualInsights,
+            analysis_input.clusterData,
+            analysis_input.dataTreatment.normalize,
+            analysis_input.dataTreatment.excludeNulls,
+            analysis_input.dataTreatment.groupCategories,
+            analysis_input.numberOfClusters
+        ))
+        
+        analysis_id = cursor.lastrowid
+        if analysis_id is None:
+            raise Exception("Falha ao obter o ID da análise salva")
+
+        # ... (código de salvar segmentos permanece igual) ...
+        for segment in analysis_output.segments:
+            cursor.execute("""
+            INSERT INTO segments (
+                analysis_id, name, size, avg_purchase_value, purchase_frequency, description
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                analysis_id,
+                segment.name,
+                segment.size,
+                segment.avg_purchase_value,
+                segment.purchase_frequency,
+                segment.description
+            ))
             
-        # 3. Retorna o resultado para o frontend
-        return validated_output
+        conn.commit()
+        print(f"Análise {analysis_id} (Usuário {user_id}) salva no DB.", file=sys.stderr)
+        return analysis_id
+
+def get_all_analyses(user_id: int) -> List[AnalysisMetadata]: # NOVO PARÂMETRO
+    """Busca metadados de todas as análises salvas PARA UM USUÁRIO ESPECÍFICO."""
+    analyses: List[AnalysisMetadata] = []
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # --- QUERY ATUALIZADA ---
+        cursor.execute(
+            "SELECT id, timestamp, number_of_clusters, original_csv_data FROM analyses WHERE user_id = ? ORDER BY timestamp DESC",
+            (user_id,)
+        )
+        rows = cursor.fetchall()
         
-    except ValueError as ve: 
-        print(f"Erro de validação ou JSON: {ve}", file=sys.stderr)
-        raise HTTPException(status_code=500, detail=str(ve))
-    except Exception as e:
-        print(f"Erro inesperado no endpoint: {e}", file=sys.stderr)
-        raise HTTPException(status_code=500, detail=f"Erro ao processar a solicitação: {str(e)}")
+        for row in rows:
+            # ... (código de snippet permanece igual) ...
+            snippet = (row['original_csv_data'] or '').split('\n', 1)[0][:50] + '...'
+            analyses.append(AnalysisMetadata(
+                id=row['id'],
+                timestamp=row['timestamp'],
+                number_of_clusters=row['number_of_clusters'],
+                original_data_snippet=snippet
+            ))
+    return analyses
 
-# --- NOVOS ENDPOINTS ---
-
-@app.get("/api/segmentation-analyses", response_model=List[AnalysisMetadata])
-async def list_analyses():
-    """
-    Endpoint para listar todas as análises salvas (metadados).
-    """
-    try:
-        analyses = get_all_analyses()
-        return analyses
-    except Exception as e:
-        print(f"Erro ao listar análises: {e}", file=sys.stderr)
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar análises: {str(e)}")
-
-@app.get("/api/segmentation-analyses/{analysis_id}", response_model=MarketSegmentationInsightsOutput)
-async def get_analysis(analysis_id: int):
-    """
-    Endpoint para buscar uma análise salva completa pelo ID.
-    """
-    try:
-        analysis = get_analysis_by_id(analysis_id)
-        if not analysis:
-            raise HTTPException(status_code=404, detail="Análise não encontrada")
-        return analysis
-    except HTTPException as http_exc:
-        raise http_exc
-    except Exception as e:
-        print(f"Erro ao buscar análise {analysis_id}: {e}", file=sys.stderr)
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar análise: {str(e)}")
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "Serviço de Segmentação MarketWise AI"}
-
-# Para rodar este serviço:
-# uvicorn segmentation_service.main:app --reload --port 8001
+def get_analysis_by_id(analysis_id: int, user_id: int) -> Optional[MarketSegmentationInsightsOutput]: # NOVO PARÂMETRO
+    """Busca uma análise completa pelo seu ID, VERIFICANDO O DONO."""
+    analysis_data: Optional[Dict[str, Any]] = None
+    segments_list: List[Segment] = []
+    
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        # --- QUERY ATUALIZADA ---
+        # Verifica o ID da análise E o ID do usuário
+        cursor.execute(
+            "SELECT textual_insights FROM analyses WHERE id = ? AND user_id = ?",
+            (analysis_id, user_id)
+        )
+        analysis_row = cursor.fetchone()
+        
+        if not analysis_row:
+            return None # Não encontrado ou não pertence ao usuário
+        
+        analysis_data = {"textualInsights": analysis_row["textual_insights"]}
+        
+        # ... (código de buscar segmentos permanece igual) ...
+        cursor.execute("SELECT name, size, avg_purchase_value, purchase_frequency, description FROM segments WHERE analysis_id = ?", (analysis_id,))
+        segment_rows = cursor.fetchall()
+        
+        for row in segment_rows:
+            segments_list.append(Segment(**dict(row)))
+            
+    if analysis_data:
+        analysis_data["segments"] = segments_list
+        return MarketSegmentationInsightsOutput(**analysis_data)
+    
+    return None

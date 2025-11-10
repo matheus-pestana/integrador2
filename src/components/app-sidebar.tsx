@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Target, BotMessageSquare, Settings, History } from "lucide-react";
+import { LayoutDashboard, Target, BotMessageSquare, Settings, History, User } from "lucide-react";
 
 import { Logo } from "@/components/icons";
 import {
