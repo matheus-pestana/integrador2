@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import sys
 import os
@@ -6,15 +6,18 @@ import os
 # Adiciona a pasta 'common' ao sys.path para permitir importações
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from common.models import MarketingStrategiesInput, MarketingStrategiesOutput
+from common.models import MarketingStrategiesInput, MarketingStrategiesOutput, User
 from common.ai_service import GeminiMarketingService
+from common.auth import get_current_user # IMPORTAR AUTENTICAÇÃO
 
 app = FastAPI(
+# ... (código existente, sem alterações)
     title="MarketWise - Serviço de Estratégias",
     description="Microsserviço que gera estratégias de marketing."
 )
 
 app.add_middleware(
+# ... (código existente, sem alterações)
     CORSMiddleware,
     allow_origins=["*"], # Em produção, restrinja isso ao seu domínio de frontend
     allow_credentials=True,
@@ -24,13 +27,17 @@ app.add_middleware(
 
 # Instancia o serviço OOP
 try:
+# ... (código existente, sem alterações)
     service = GeminiMarketingService()
 except Exception as e:
     print(f"ERRO FATAL ao inicializar o GeminiMarketingService: {e}", file=sys.stderr)
     sys.exit(1)
 
 @app.post("/api/marketing-strategies", response_model=MarketingStrategiesOutput)
-async def get_marketing_strategies_endpoint(input_data: MarketingStrategiesInput):
+async def get_marketing_strategies_endpoint(
+    input_data: MarketingStrategiesInput,
+    current_user: User = Depends(get_current_user) # PROTEGER ENDPOINT
+):
     """
     Endpoint para gerar estratégias de marketing personalizadas.
     """
@@ -39,6 +46,7 @@ async def get_marketing_strategies_endpoint(input_data: MarketingStrategiesInput
         validated_output = await service.generate_marketing_strategies(input_data)
         return validated_output
     except ValueError as ve: # Erro de JSON ou validação
+# ... (código existente, sem alterações)
         print(f"Erro de validação ou JSON: {ve}", file=sys.stderr)
         raise HTTPException(status_code=500, detail=str(ve))
     except Exception as e:
@@ -47,6 +55,7 @@ async def get_marketing_strategies_endpoint(input_data: MarketingStrategiesInput
 
 @app.get("/")
 def read_root():
+# ... (código existente, sem alterações)
     return {"Hello": "Serviço de Estratégias MarketWise AI"}
 
 # Para rodar este serviço:

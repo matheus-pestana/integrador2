@@ -44,8 +44,8 @@ export const MOCK_SCATTER_DATA = [
 ];
 
 export const MOCK_BAR_CHART_DATA = [
-    { name: "Alto Valor", size: 120, fill: "var(--color-chart-1)" },
-    { name: "Novos Clientes", size: 450, fill: "var(--color-chart-2)" },
-    { name: "Econômicos", size: 280, fill: "var(--color-chart-3)" },
-    { name: "Em Risco", size: 50, fill: "var(--color-chart-4)" },
+    { name: "Alto Valor", size: 120, fill: "hsl(var(--chart-1))" },
+    { name: "Novos Clientes", size: 450, fill: "hsl(var(--chart-2))" },
+    { name: "Econômicos", size: 280, fill: "hsl(var(--chart-3))" },
+    { name: "Em Risco", size: 50, fill: "hsl(var(--chart-4))" },
 ];
