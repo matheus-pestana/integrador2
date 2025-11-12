@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getSegmentationInsights } from '@/lib/actions';
-import { Loader2, Wand2, Upload, FileText, Info } from 'lucide-react'; // Usando Info para destaque
+import { Loader2, Wand2, Upload, FileText, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSegmentation } from '@/context/segmentation-context';
 import { Label } from '@/components/ui/label';
@@ -26,11 +26,13 @@ export default function SegmentationPage() {
     const { analysis, setAnalysis } = useSegmentation();
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
-    const [csvData, setCsvData] = useState<string | null>(null);
+    
+    // MUDANÇA: Salva o objeto File, não a string
+    const [file, setFile] = useState<File | null>(null); 
+    
     const [fileName, setFileName] = useState<string | null>(null);
     const [fileInput, setFileInput] = useState<HTMLInputElement | null>(null);
     const [numClusters, setNumClusters] = useState(3);
-    // Novo estado para controlar o algoritmo selecionado
     const [selectedAlgo, setSelectedAlgo] = useState("kmeans");
 
     const [dataTreatment, setDataTreatment] = useState({
@@ -40,18 +42,11 @@ export default function SegmentationPage() {
     });
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target?.result as string;
-                const lines = text.split('\n');
-                const header = lines[0];
-                const sample = lines.slice(1, 11).join('\n');
-                setCsvData(`${header}\n${sample}`);
-                setFileName(file.name);
-            };
-            reader.readAsText(file);
+        const selectedFile = event.target.files?.[0];
+        if (selectedFile) {
+            // MUDANÇA: Salva o arquivo inteiro no estado
+            setFile(selectedFile);
+            setFileName(selectedFile.name);
         }
     };
 
@@ -60,7 +55,8 @@ export default function SegmentationPage() {
     };
 
     const handleAnalysis = () => {
-        if (!csvData) {
+        // MUDANÇA: Verifica se o 'file' existe
+        if (!file) { 
             toast({
                 variant: 'destructive',
                 title: 'Nenhum arquivo selecionado',
@@ -69,10 +65,19 @@ export default function SegmentationPage() {
             return;
         }
 
-        // (Nota: Você precisará passar o 'selectedAlgo' para a função getSegmentationInsights se o backend suportar isso no futuro.
-        // Por enquanto, mantive como estava, usando apenas numClusters conforme sua implementação original)
+        // MUDANÇA: Monta o FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('numberOfClusters', numClusters.toString());
+        formData.append('normalize', String(dataTreatment.normalize));
+        formData.append('excludeNulls', String(dataTreatment.excludeNulls));
+        formData.append('groupCategories', String(dataTreatment.groupCategories));
+        // (Nota: o 'selectedAlgo' ainda não está sendo usado no backend,
+        //  mas você poderia adicioná-lo ao formData se quisesse)
+
         startTransition(async () => {
-            const result = await getSegmentationInsights(csvData, dataTreatment, numClusters);
+            // MUDANÇA: Envia o FormData para a action
+            const result = await getSegmentationInsights(formData); 
             if(result.message === 'success' && result.analysis) {
                 setAnalysis(result.analysis);
             } else {
@@ -141,7 +146,6 @@ export default function SegmentationPage() {
                                     </SelectContent>
                                 </Select>
                                 
-                                {/* Caixa explicativa persistente - Resolve o problema visual e melhora a UX */}
                                 <div className="bg-muted/50 p-3 rounded-md text-sm text-muted-foreground flex gap-2 items-start">
                                     <Info className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
                                     <p>{algoDescriptions[selectedAlgo]}</p>
@@ -183,7 +187,8 @@ export default function SegmentationPage() {
                                 className="hidden"
                             />
                             
-                            {!csvData ? (
+                            {/* MUDANÇA: Verifica 'file' */}
+                            {!file ? (
                                 <Button onClick={handleUploadClick} size="lg" className="font-semibold">
                                     <Upload className="mr-2 h-4 w-4" />
                                     Selecionar Arquivo CSV

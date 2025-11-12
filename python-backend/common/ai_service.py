@@ -85,6 +85,8 @@ class GeminiMarketingService:
 
     async def _generate_json_response(self, prompt_text: str, expected_model: BaseModel) -> Dict[str, Any]:
         """Método genérico para chamar a API e tratar erros."""
+        response = None  # <--- ADICIONE ESTA LINHA
+        response_text = "" # <--- ADICIONE ESTA LI
         try:
             # Em versões mais recentes, 'response_text' pode não ser síncrono
             response = await self.model.generate_content_async(prompt_text)

@@ -1,2 +1,4 @@
 passlib[bcrypt]
-python-jose[cryptography]   
+python-jose[cryptography]
+pandas
+python-multipart

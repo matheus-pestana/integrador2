@@ -17,12 +17,12 @@ export default function AppHeader() {
     <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-card px-4 md:px-6 sticky top-0 z-30">
         <SidebarTrigger />
         <div className="relative ml-auto flex-1 md:grow-0">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          {/* <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Buscar..."
             className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
-          />
+          /> */}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -48,10 +48,7 @@ export default function AppHeader() {
                 <span>Perfil</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>Configurações</DropdownMenuItem>
-            <DropdownMenuItem>Suporte</DropdownMenuItem>
             <DropdownMenuSeparator />
-            {/* ATUALIZADO: Botão de Sair como um formulário */}
             <form action={logout}>
               <DropdownMenuItem asChild>
                   <button type="submit" className="w-full">

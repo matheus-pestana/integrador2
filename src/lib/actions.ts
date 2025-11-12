@@ -282,27 +282,29 @@ interface MarketSegmentationInsightsInputApi {
 }
 
 export async function getSegmentationInsights(
-    clusterData: string,
-    dataTreatment: DataTreatmentInput,
-    numberOfClusters: number
+    formData: FormData // MUDANÇA 1: Agora recebe FormData
 ): Promise<SegmentationState> {
-    if (!clusterData) {
-        // ... (código existente, sem alterações)
-        return { message: 'error', errorMessage: 'Dados CSV não fornecidos.' };
+
+    // Validação de frontend (boa prática)
+    const file = formData.get('file');
+    if (!file || !(file instanceof File) || file.size === 0) {
+        return { message: 'error', errorMessage: 'Arquivo .csv não fornecido.' };
     }
 
     try {
-        const headers = await getAuthHeaders(); // PROTEGER
-        const inputData: MarketSegmentationInsightsInputApi = { clusterData, dataTreatment, numberOfClusters };
+        const headers = await getAuthHeaders(); // Pega o token de auth
+
+        // MUDANÇA 2: Deleta o header 'Content-Type'
+        // O navegador vai adicionar o 'multipart/form-data' correto
+        delete headers['Content-Type'];
 
         const response = await fetch(`${SEGMENTATION_API_URL}/segmentation-insights`, {
             method: 'POST',
-            headers: headers, // USAR HEADERS
-            body: JSON.stringify(inputData),
+            headers: headers, // Envia os headers de autenticação
+            body: formData, // MUDANÇA 3: Envia o FormData diretamente
         });
 
         if (!response.ok) {
-            // ... (código existente, sem alterações)
             const errorData = await response.json().catch(() => ({ detail: 'Erro desconhecido na API Python.' }));
             console.error("Erro da API Python (Segmentação):", errorData);
             return { message: 'error', errorMessage: `Erro da API (${response.status}): ${errorData.detail || response.statusText}` };
@@ -311,14 +313,12 @@ export async function getSegmentationInsights(
         const result: MarketSegmentationInsightsOutput = await response.json();
 
         if (!result || !result.textualInsights || !Array.isArray(result.segments)) {
-            // ... (código existente, sem alterações)
             return { message: 'error', errorMessage: 'Resposta inválida da API Python.' };
         }
 
         return { message: 'success', analysis: result };
 
     } catch (error) {
-        // ... (código existente, sem alterações)
         console.error("Erro ao chamar getSegmentationInsights:", error);
         const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
         return { message: 'error', errorMessage: `Falha na comunicação com a API: ${errorMessage}` };
