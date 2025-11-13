@@ -149,4 +149,4 @@ Caso todas as bibliotecas Python já estejam instaladas no `.venv` e o `.env` j�
 
 ### Desenvolvedores
 Matheus Arcangelo Pestana - https://www.linkedin.com/in/matheus-arcangelo/ - matheus0pestana@gmail.com  
-Julio César Santos de Morais - https://www.linkedin.com/in/julio-c%C3%A9sar-morais-64b91b159 - juliocesarmorais78@gmail.com
+Julio César Santos de Morais - https://www.linkedin.com/in/julio-cesar-morais/ - juliocesarmorais78@gmail.com
