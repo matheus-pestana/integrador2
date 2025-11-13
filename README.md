@@ -1,72 +1,152 @@
-# Integrador2
+# MarketWise AI (Projeto Integrador 2)
 
 Breve descrição
 ----------------
-Integrador2 é uma aplicação web composta por um backend em Python (FastAPI) que expõe endpoints de análise/segmentação e um frontend em Next.js (React). O backend usa a biblioteca `google.generativeai` e espera uma variável de ambiente `GOOGLE_API_KEY` para funcionar.
+O **MarketWise AI** é uma aplicação web full-stack projetada para clusterização de clientes e segmentação de mercado usando inteligência artificial.
+
+A aplicação é composta por:
+* **Frontend:** Uma interface moderna em **Next.js (React)**, utilizando **Turbopack**.
+* **Backend:** Uma arquitetura de microsserviços em **Python (FastAPI)** que se comunica com a API **Google Gemini** para análise e geração de insights, com persistência de dados em **SQLite**.
 
 Pré-requisitos
 --------------
-- Python 3.10+ e pip
-- Node.js 18+ e npm (ou pnpm)
-- Uma chave de API do Google compatível (definida em `python-backend/.env` como `GOOGLE_API_KEY`)
+* Python 3.10+ e pip
+* Node.js 18+ e npm (ou pnpm/yarn)
+* Uma **Chave de API do Google Gemini** (para a IA)
+* Uma **Chave Secreta para JWT** (para autenticação, pode ser qualquer string longa e segura)
 
 Como rodar (rápido)
 -------------------
-1) Iniciar o backend (obrigatório antes do frontend)
+O projeto é dividido em 3 microsserviços de backend e 1 de frontend.
 
-Abra um terminal Powershell e execute:
+### 1) Iniciar o Backend (Microsserviços)
 
-```powershell
-cd python-backend
-# criar e ativar um ambiente virtual (Windows PowerShell)
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+1.  Abra um terminal, navegue até a pasta `python-backend` e crie/ative um ambiente virtual.
 
-# instalar dependências (se existir requirements.txt use-o, caso contrário instale os pacotes abaixo)
-if (Test-Path requirements.txt) { pip install -r requirements.txt } else { pip install fastapi uvicorn python-dotenv google-generativeai }
+    *No Windows (PowerShell):*
+    ```powershell
+    cd python-backend
+    python -m venv .venv
+    .\.venv\Scripts\Activate.ps1
+    ```
+    *No macOS/Linux:*
+    ```bash
+    cd python-backend
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
 
-# criar arquivo .env com a variável GOOGLE_API_KEY (exemplo)
-Set-Content -Path .env -Value 'GOOGLE_API_KEY=SEU_VALOR_AQUI'
+2.  Crie o arquivo `requirements.txt`: O requirements.txt no projeto pode estar incompleto. Crie um novo arquivo requirements.txt dentro da pasta python-backend com o seguinte conteúdo para garantir que todas as dependências sejam instaladas:
+    ```txt
+    fastapi
+    uvicorn[standard]
+    google-generativeai
+    python-dotenv
+    passlib[bcrypt]
+    python-jose[cryptography]
+    pandas
+    python-multipart
+    pydantic
+    ```
 
-# iniciar o servidor (FastAPI via uvicorn)
-uvicorn main:app --reload --port 8000
-```
+3.  Instale as dependências:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-O backend ficará disponível em: http://localhost:8000
+4.  Crie o arquivo `.env` na pasta `python-backend` com as **duas chaves**:
+    *No Windows (PowerShell):*
+    ```powershell
+    Set-Content -Path .env -Value "GOOGLE_API_KEY=SUA_CHAVE_API_DO_GOOGLE_AQUI`nJWT_SECRET_KEY=SUA_CHAVE_SECRETA_JWT_AQUI"
+    ```
+    *No macOS/Linux (ou manualmente):* Crie o arquivo `.env` com este conteúdo:
+    ```env
+    GOOGLE_API_KEY=SUA_CHAVE_API_DO_GOOGLE_AQUI
+    JWT_SECRET_KEY=SUA_CHAVE_SECRETA_JWT_AQUI
+    ```
 
-2) Iniciar o frontend (Next.js)
+5.  Inicie os 3 microsserviços.
 
-Abra outro terminal (na raiz do projeto) e execute:
+    **Opção A (Windows - Recomendado):**
+    Execute o script `.bat` fornecido, que iniciará os 3 serviços em janelas minimizadas:
+    ```batch
+    .\run_backend.bat
+    ```
 
-```powershell
-cd C:\Users\WINDOWS\Desktop\matheus\integrador\integrador2
-npm install
-npm run dev
-```
+    **Opção B (Manual - macOS/Linux/Windows):**
+    Você precisará de **3 terminais separados** (todos com o `.venv` ativado):
 
-Por padrão o script de desenvolvimento do projeto executa o Next.js na porta 9002; acesse: http://localhost:9002
+    * **Terminal 1 (Auth Service - *Execute este primeiro!*):**
+        ```bash
+        # Responsável pelo login e criação do DB
+        uvicorn auth_service.main:app --reload --port 8000
+        ```
+    * **Terminal 2 (Segmentation Service):**
+        ```bash
+        # Responsável pela segmentação e histórico
+        uvicorn segmentation_service.main:app --reload --port 8001
+        ```
+    * **Terminal 3 (Strategy Service):**
+        ```bash
+        # Responsável por gerar estratégias
+        uvicorn strategy_service.main:app --reload --port 8002
+        ```
+
+### 2) Iniciar o Frontend (Next.js)
+
+1.  Abra **outro terminal** (não feche os do backend) e volte para a **raiz do projeto**.
+
+2.  Instale as dependências do Node.js:
+    ```bash
+    npm install
+    ```
+
+3.  Inicie o servidor de desenvolvimento do frontend:
+    ```bash
+    npm run dev
+    ```
+
+4.  Acesse a aplicação no seu navegador:
+    [http://localhost:9002](http://localhost:9002)
 
 Notas rápidas
 -------------
-- O backend imprime mensagens de diagnóstico sobre o carregamento do `.env` ao iniciar; verifique se `GOOGLE_API_KEY` foi carregada corretamente.
-- Se você preferir usar `pnpm` ou `yarn`, adapte os comandos de instalação e execução (`pnpm install` / `pnpm dev`).
-- Este README fornece instruções mínimas de execução. Para deploy, configuração de produção e segurança da chave de API, adicione passos apropriados antes do lançamento.
+* O backend consiste em 3 serviços. O **Serviço de Autenticação** (porta 8000) é responsável por criar o banco de dados `analyses.db` na primeira inicialização.
+* O frontend (`actions.ts`) está configurado para se comunicar com as portas `8000`, `8001` e `8002`.
+* Verifique se as variáveis `GOOGLE_API_KEY` (para a IA) e `JWT_SECRET_KEY` (para login) estão corretas no arquivo `.env`.
+* As rotas do app são protegidas; você precisará criar uma conta / fazer login para ver o dashboard.
 
 Arquivos relevantes
 -------------------
-- `python-backend/main.py` - servidor FastAPI e endpoints
-- `package.json` - scripts do frontend (rodar com `npm run dev`)
+* `python-backend/auth_service/main.py` - (Porta 8000) Servidor de Autenticação e Usuários.
+* `python-backend/segmentation_service/main.py` - (Porta 8001) Servidor de Segmentação (Upload de CSV) e Histórico.
+* `python-backend/strategy_service/main.py` - (Porta 8002) Servidor de Geração de Estratégias.
+* `python-backend/common/database.py` - Define o schema do banco de dados SQLite (`analyses.db`).
+* `python-backend/common/auth.py` - Lógica de autenticação e JWT.
+* `src/lib/actions.ts` - Server Actions do Next.js que chamam os microsserviços.
+* `src/middleware.ts` - Middleware do Next.js que protege as rotas da aplicação.
+* `package.json` - Scripts do frontend (rodar com `npm run dev`).
 
 ----
 Nota:
-Caso todas as Bibliotecas já estejam instaladas no .venv do python
-e a chave de API já estiver inserida no arquivo .env, rodar apenas os comandos abaixo:
+Caso todas as bibliotecas Python já estejam instaladas no `.venv` e o `.env` já esteja configurado, rode apenas os comandos abaixo:
 
-# acessa a pasta do back-end
-cd python-backend
-# acessa e inicializa o ambiente virtual do python
-.\.venv\Scripts\Activate.ps1
-# inicializa o back-end em um terminal (não fechar)
-uvicorn main:app --reload --port 8000
-# em outro terminal, iniciar a aplicação
-npm run dev
+1.  **Terminal 1 (Backend):**
+    ```powershell
+    # Acesse a pasta do back-end
+    cd python-backend
+    # Ative o ambiente virtual
+    .\.venv\Scripts\Activate.ps1
+    # Inicie todos os serviços (não feche esta janela)
+    .\run_backend.bat
+    ```
+
+2.  **Terminal 2 (Frontend):**
+    ```bash
+    # Na raiz do projeto, inicie o frontend (não feche esta janela)
+    npm run dev
+    ```
+
+### Desenvolvedores
+Matheus Arcangelo Pestana - https://www.linkedin.com/in/matheus-arcangelo/ - matheus0pestana@gmail.com
+Julio César Santos de Morais - https://www.linkedin.com/in/julio-c%C3%A9sar-morais-64b91b159 - juliocesarmorais78@gmail.com
